@@ -9,15 +9,7 @@ pub enum Mutation {
     Set(i32),
 }
 
-pub fn branch(vars: &Vars) -> impl Iterator<Item = Choice> {
-    // Branch on the first unset variable
-    let (pivot, pivot_var) = vars.iter().find(|(_id, var)| !var.is_set()).unwrap();
-
+pub fn branch(pivot: &Var) -> impl Iterator<Item = Mutation> {
     // Iterate over all possible values within domain
-    (pivot_var.min..=pivot_var.max)
-        .rev()
-        .map(move |value| Choice {
-            pivot,
-            mutation: Mutation::Set(value),
-        })
+    (pivot.min..=pivot.max).rev().map(Mutation::Set)
 }

@@ -211,6 +211,6 @@ impl Model {
 
     fn search(&self, obj: VarId, stop_on_feasibility: bool) -> Option<Solution> {
         Searcher::new(&self.deps, obj, stop_on_feasibility)
-            .search::<backlog::Stack>(&self.vars, &self.props)
+            .search::<backlog::Stack, crate::search::pick::FirstUnset>(&self.vars, &self.props)
     }
 }
