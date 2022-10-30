@@ -61,8 +61,8 @@ impl<'s> Searcher<'s> {
     fn branch(&self, choice: &Choice, obj_opt: Option<i32>, mut space: Space) -> ResultProps {
         // Apply selected branch to search space
         space.vars = match choice.mutation {
-            Mutation::Set(val) => space.vars.try_set(choice.pivot, val)?,
-        };
+            Mutation::Set(val) => space.vars.try_set(choice.pivot, val),
+        }?;
 
         // Prune domains that cannot improve on the current best found objective value
         if let Some(obj) = obj_opt {
