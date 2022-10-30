@@ -4,7 +4,7 @@ pub mod branch;
 /// Variable selection strategies.
 pub mod pick;
 
-pub mod backlog;
+pub mod engine;
 
 use std::collections::VecDeque;
 
@@ -12,8 +12,8 @@ use crate::props::{self, Failed, PropId, Props};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId, Vars};
 
-use self::backlog::Backlog;
 use self::branch::{Branch, Mutation};
+use self::engine::Engine;
 use self::pick::Pick;
 
 /// Store immutable model variables referenced during search.
@@ -32,7 +32,7 @@ impl<'s> Searcher<'s> {
         }
     }
 
-    pub fn search<T: Backlog, P: Pick, B: Branch>(&self, v: &[Var], p: &Props) -> Option<Solution> {
+    pub fn search<E: Engine, P: Pick, B: Branch>(&self, v: &[Var], p: &Props) -> Option<Solution> {
         let space = Space {
             vars: Vars::new(v),
             props: p.clone(),
@@ -40,7 +40,7 @@ impl<'s> Searcher<'s> {
 
         // Initial propagation runs all declared propagators
         match self.propagate_with_all_props(p, space).ok()? {
-            Propagated::Fixed(space) => T::default().search::<P, B>(space, self),
+            Propagated::Fixed(space) => E::default().search::<P, B>(space, self),
             Propagated::Done(solution) => Some(solution),
         }
     }

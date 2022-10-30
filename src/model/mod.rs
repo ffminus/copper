@@ -12,7 +12,7 @@ use std::marker::PhantomData;
 use crate::props::{self, PropId, Propagate, Props};
 use crate::search::branch::{Branch, SetMinToMax as BrancherDefault};
 use crate::search::pick::{FirstUnset as PickerDefault, Pick};
-use crate::search::{backlog, Deps, Searcher};
+use crate::search::{engine, Deps, Searcher};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId};
 
@@ -214,7 +214,7 @@ impl Model {
 
     fn search<P: Pick, B: Branch>(&self, ob: VarId, stop_on_feasibility: bool) -> Option<Solution> {
         Searcher::new(&self.deps, ob, stop_on_feasibility)
-            .search::<backlog::Stack, P, B>(&self.vars, &self.props)
+            .search::<engine::Stack, P, B>(&self.vars, &self.props)
     }
 }
 

@@ -7,7 +7,7 @@ use super::pick::Pick;
 use super::{Choice, Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.
-pub trait Backlog: Default {
+pub trait Engine: Default {
     /// Perform search, keeping track of spaces to explore on branching.
     fn search<P: Pick, B: Branch>(self, space: Space, searcher: &Searcher) -> Option<Solution>;
 }
@@ -20,7 +20,7 @@ pub struct Stack {
     tasks: Vec<(Choice, Rc<Space>)>,
 }
 
-impl Backlog for Stack {
+impl Engine for Stack {
     fn search<P: Pick, B: Branch>(mut self, space: Space, searcher: &Searcher) -> Option<Solution> {
         self.push_tasks::<P, B>(space);
 
