@@ -11,7 +11,7 @@ use crate::vars::{Var, VarId, Vars};
 
 use self::branch::enumerate::Enumerate;
 use self::branch::pick::Pick;
-use self::branch::Mutation;
+use self::branch::{Choice, Mutation};
 use self::engine::Engine;
 
 /// Store immutable model variables referenced during search.
@@ -191,11 +191,4 @@ pub struct DepsProps {
     pub sum: Vec<props::PropSumDeps>,
     pub eq: Vec<props::PropEqDeps>,
     pub leq: Vec<props::PropLeqDeps>,
-}
-
-/// Branch to be applied to mutate search space.
-#[derive(Debug)]
-pub struct Choice {
-    pub pivot: VarId,
-    pub mutation: Mutation,
 }

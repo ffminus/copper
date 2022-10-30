@@ -4,7 +4,8 @@ use crate::solution::Solution;
 
 use super::branch::enumerate::Enumerate;
 use super::branch::pick::Pick;
-use super::{Choice, Propagated, Searcher, Space};
+use super::branch::Choice;
+use super::{Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.
 pub trait Engine<P: Pick, E: Enumerate> {
