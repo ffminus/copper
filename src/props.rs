@@ -9,15 +9,6 @@ pub type ResultProp = Result<Vars, Failed>;
 /// New-type to improve clarity over unit type.
 pub struct Failed;
 
-/// Enforce a specific constraint by removing assignments that break it from variable domains.
-pub trait Propagate {
-    /// Dependent variables stored externally and injected during propagation.
-    type Deps;
-
-    /// Prunes unfeasible assignments from domain, signal failed nodes with `None` value.
-    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp;
-}
-
 /// Discriminate propagator type with enum to enable static dispatch and dependency injection.
 #[derive(Clone, Copy, Debug)]
 pub enum PropId {
@@ -44,12 +35,10 @@ pub struct Props {
 #[derive(Clone, Debug)]
 pub struct PropScalePos;
 
-impl Propagate for PropScalePos {
-    type Deps = (VarId, VarId, i32);
+pub type PropScalePosDeps = (VarId, VarId, i32);
 
-    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp {
-        let (x, y, coef) = *deps;
-
+impl PropScalePos {
+    pub fn propagate((x, y, coef): PropScalePosDeps, vars: Vars) -> ResultProp {
         let (var_x, var_y) = (&vars[x], &vars[y]);
 
         let min = max_of(var_x.min, var_y.min.next_multiple_of_tmp(coef) / coef);
@@ -66,12 +55,10 @@ impl Propagate for PropScalePos {
 #[derive(Clone, Debug)]
 pub struct PropScaleNeg;
 
-impl Propagate for PropScaleNeg {
-    type Deps = (VarId, VarId, i32);
+pub type PropScaleNegDeps = (VarId, VarId, i32);
 
-    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp {
-        let (x, y, coef) = *deps;
-
+impl PropScaleNeg {
+    pub fn propagate((x, y, coef): PropScaleNegDeps, vars: Vars) -> ResultProp {
         let (var_x, var_y) = (&vars[x], &vars[y]);
 
         let min = max_of(var_x.min, (var_y.max - var_y.max.rem_euclid(-coef)) / coef);
@@ -88,12 +75,10 @@ impl Propagate for PropScaleNeg {
 #[derive(Clone, Debug)]
 pub struct PropPlus;
 
-impl Propagate for PropPlus {
-    type Deps = (VarId, (VarId, VarId));
+pub type PropPlusDeps = (VarId, (VarId, VarId));
 
-    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp {
-        let (p, (x, y)) = *deps;
-
+impl PropPlus {
+    pub fn propagate((p, (x, y)): PropPlusDeps, vars: Vars) -> ResultProp {
         let (var_x, var_y, var_p) = (&vars[x], &vars[y], &vars[p]);
 
         let min = max_of(var_x.min + var_y.min, var_p.min);
@@ -114,22 +99,23 @@ impl Propagate for PropPlus {
 #[derive(Clone, Debug)]
 pub struct PropSum;
 
-impl Propagate for PropSum {
-    type Deps = (VarId, Vec<VarId>);
+pub type PropSumDepsRef<'xs> = (VarId, &'xs [VarId]);
+pub type PropSumDeps = (VarId, Vec<VarId>);
 
-    fn propagate(&mut self, (s, xs): &Self::Deps, mut vars: Vars) -> ResultProp {
+impl PropSum {
+    pub fn propagate((s, xs): PropSumDepsRef, mut vars: Vars) -> ResultProp {
         let (sum_of_mins, sum_of_maxs) = xs
             .iter()
             .copied()
             .map(|id| &vars[id])
             .fold((0, 0), |(min, max), x| (min + x.min, max + x.max));
 
-        let var = &vars[*s];
+        let var = &vars[s];
 
         let min = max_of(sum_of_mins, var.min);
         let max = min_of(sum_of_maxs, var.max);
 
-        vars = vars.set_min_and_max(*s, min, max)?;
+        vars = vars.set_min_and_max(s, min, max)?;
 
         for &x in xs {
             let x_min_new = min - (sum_of_maxs - vars[x].max);
@@ -145,12 +131,10 @@ impl Propagate for PropSum {
 #[derive(Clone, Debug)]
 pub struct PropEq;
 
-impl Propagate for PropEq {
-    type Deps = (VarId, VarId);
+pub type PropEqDeps = (VarId, VarId);
 
-    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp {
-        let (x, y) = *deps;
-
+impl PropEq {
+    pub fn propagate((x, y): PropEqDeps, vars: Vars) -> ResultProp {
         let (var_x, var_y) = (&vars[x], &vars[y]);
 
         let min = max_of(var_x.min, var_y.min);
@@ -167,12 +151,10 @@ impl Propagate for PropEq {
 #[derive(Clone, Debug)]
 pub struct PropLeq;
 
-impl Propagate for PropLeq {
-    type Deps = (VarId, VarId);
+pub type PropLeqDeps = (VarId, VarId);
 
-    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp {
-        let (x, y) = *deps;
-
+impl PropLeq {
+    pub fn propagate((x, y): PropLeqDeps, vars: Vars) -> ResultProp {
         let max = min_of(vars[x].max, vars[y].max);
 
         vars.set_max(x, max)

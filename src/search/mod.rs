@@ -3,7 +3,7 @@ pub mod branch;
 
 use std::collections::VecDeque;
 
-use crate::props::{self, Failed, PropId, Propagate, Props};
+use crate::props::{self, Failed, PropId, Props};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId, Vars};
 
@@ -76,17 +76,18 @@ impl<'s> Searcher<'s> {
             // Branch on id type, to avoid dynamic dispatch for propagator and its dependencies
             let mut vars = match id {
                 PropId::ScalePos(i) => {
-                    space.props.scale_pos[i].propagate(&self.deps.props.scale_pos[i], space.vars)
+                    props::PropScalePos::propagate(self.deps.props.scale_pos[i], space.vars)
                 }
                 PropId::ScaleNeg(i) => {
-                    space.props.scale_neg[i].propagate(&self.deps.props.scale_neg[i], space.vars)
+                    props::PropScaleNeg::propagate(self.deps.props.scale_neg[i], space.vars)
                 }
-                PropId::Plus(i) => {
-                    space.props.plus[i].propagate(&self.deps.props.plus[i], space.vars)
+                PropId::Plus(i) => props::PropPlus::propagate(self.deps.props.plus[i], space.vars),
+                PropId::Sum(i) => {
+                    let (s, xs) = &self.deps.props.sum[i];
+                    props::PropSum::propagate((*s, xs), space.vars)
                 }
-                PropId::Sum(i) => space.props.sum[i].propagate(&self.deps.props.sum[i], space.vars),
-                PropId::Eq(i) => space.props.eq[i].propagate(&self.deps.props.eq[i], space.vars),
-                PropId::Leq(i) => space.props.leq[i].propagate(&self.deps.props.leq[i], space.vars),
+                PropId::Eq(i) => props::PropEq::propagate(self.deps.props.eq[i], space.vars),
+                PropId::Leq(i) => props::PropLeq::propagate(self.deps.props.leq[i], space.vars),
             }?;
 
             // Mutated variable domains returned if space is not failed by propagator
@@ -149,10 +150,10 @@ pub struct Deps {
 /// Helper struct to group dependencies for each propagator type.
 #[derive(Debug, Default)]
 pub struct DepsProps {
-    pub scale_pos: Vec<<props::PropScalePos as Propagate>::Deps>,
-    pub scale_neg: Vec<<props::PropScaleNeg as Propagate>::Deps>,
-    pub plus: Vec<<props::PropPlus as Propagate>::Deps>,
-    pub sum: Vec<<props::PropSum as Propagate>::Deps>,
-    pub eq: Vec<<props::PropEq as Propagate>::Deps>,
-    pub leq: Vec<<props::PropLeq as Propagate>::Deps>,
+    pub scale_pos: Vec<props::PropScalePosDeps>,
+    pub scale_neg: Vec<props::PropScaleNegDeps>,
+    pub plus: Vec<props::PropPlusDeps>,
+    pub sum: Vec<props::PropSumDeps>,
+    pub eq: Vec<props::PropEqDeps>,
+    pub leq: Vec<props::PropLeqDeps>,
 }
