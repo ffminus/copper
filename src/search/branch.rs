@@ -11,7 +11,7 @@ pub enum Mutation {
 }
 
 /// Enumerate mutations on pivot variable when branching.
-pub trait Branch {
+pub trait Branch: Clone {
     /// Iterator over mutations to apply to generate branches to explore.
     type Iter: Iterator<Item = Mutation>;
 
@@ -20,6 +20,7 @@ pub trait Branch {
 }
 
 /// Set each value in current domain of pivot variable iteratively, in ascending order.
+#[derive(Clone)]
 pub struct SetMinToMax;
 
 impl Branch for SetMinToMax {
@@ -42,6 +43,7 @@ impl Iterator for SetMinToMaxIter {
 }
 
 /// Set each value in current domain of pivot variable iteratively, in descending order.
+#[derive(Clone)]
 pub struct SetMaxToMin;
 
 impl Branch for SetMaxToMin {
