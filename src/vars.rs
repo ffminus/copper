@@ -83,13 +83,6 @@ pub struct Vars {
 }
 
 impl Vars {
-    pub fn new(vars: &[Var]) -> Self {
-        Self {
-            vars: vars.to_vec(),
-            events: HashSet::new(),
-        }
-    }
-
     pub fn set(mut self, id: VarId, value: i32) -> ResultProp {
         let var = &mut self.vars[*id];
 
@@ -139,12 +132,19 @@ impl Vars {
         Ok(self)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (VarId, &Var)> + '_ {
+    pub(crate) fn new(vars: &[Var]) -> Self {
+        Self {
+            vars: vars.to_vec(),
+            events: HashSet::new(),
+        }
+    }
+
+    pub(crate) fn iter(&self) -> impl Iterator<Item = (VarId, &Var)> + '_ {
         self.vars.iter().enumerate().map(|(i, var)| (VarId(i), var))
     }
 
     /// Extract assignments if all domains are singletons.
-    pub fn get_assignment_if_all_variables_are_set(&self) -> Option<Vec<i32>> {
+    pub(crate) fn get_assignment_if_all_variables_are_set(&self) -> Option<Vec<i32>> {
         if self.vars.iter().all(Var::is_set) {
             Some(self.vars.iter().map(|var| var.min).collect())
         } else {
@@ -153,7 +153,7 @@ impl Vars {
     }
 
     /// Iterate over change events triggered by propagation, while preserving allocated capacity.
-    pub fn drain_events(&mut self) -> impl Iterator<Item = VarId> + '_ {
+    pub(crate) fn drain_events(&mut self) -> impl Iterator<Item = VarId> + '_ {
         self.events.drain()
     }
 }
