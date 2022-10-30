@@ -113,6 +113,15 @@ impl Model {
         self.search(obj, false)
     }
 
+    /// Performs search and returns the assignment that maximizes the provided objective variable.
+    #[must_use]
+    pub fn maximize(mut self, obj: impl IntoVarId) -> Option<Solution> {
+        let obj_opposite = obj.into_var_id(&mut self);
+        let obj = self.scale(obj_opposite, -1);
+
+        self.search(obj, false)
+    }
+
     fn search(&self, obj: VarId, stop_on_feasibility: bool) -> Option<Solution> {
         Searcher::new(&self.deps, obj, stop_on_feasibility)
             .search::<backlog::Stack>(&self.vars, &self.props)

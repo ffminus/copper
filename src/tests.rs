@@ -38,3 +38,14 @@ fn minimize() {
 
     assert_eq!(solution[x], 0);
 }
+
+#[test]
+fn maximize() {
+    let mut m = Model::default();
+
+    let x = m.new_var(0, 5);
+
+    let solution = m.maximize(x).unwrap();
+
+    assert_eq!(solution[x], 5);
+}
