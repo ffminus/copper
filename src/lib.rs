@@ -20,7 +20,9 @@
 mod model;
 mod props;
 mod search;
+mod solution;
 mod vars;
 
 pub use crate::model::{IntoVarId, Model};
+pub use crate::solution::Solution;
 pub use crate::vars::VarId;
