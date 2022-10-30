@@ -45,6 +45,7 @@ impl<'s> Searcher<'s> {
             .map(PropId::ScalePos)
             .chain((0..props.scale_neg.len()).map(PropId::ScaleNeg))
             .chain((0..props.plus.len()).map(PropId::Plus))
+            .chain((0..props.sum.len()).map(PropId::Sum))
             .chain((0..props.eq.len()).map(PropId::Eq))
             .collect();
 
@@ -78,6 +79,7 @@ impl<'s> Searcher<'s> {
                 PropId::Plus(i) => {
                     space.props.plus[i].propagate(&self.deps.props.plus[i], space.vars)
                 }
+                PropId::Sum(i) => space.props.sum[i].propagate(&self.deps.props.sum[i], space.vars),
                 PropId::Eq(i) => space.props.eq[i].propagate(&self.deps.props.eq[i], space.vars),
             };
 
@@ -146,5 +148,6 @@ pub struct DepsProps {
     pub scale_pos: Vec<<props::PropScalePos as Propagate>::Deps>,
     pub scale_neg: Vec<<props::PropScaleNeg as Propagate>::Deps>,
     pub plus: Vec<<props::PropPlus as Propagate>::Deps>,
+    pub sum: Vec<<props::PropSum as Propagate>::Deps>,
     pub eq: Vec<<props::PropEq as Propagate>::Deps>,
 }

@@ -104,6 +104,33 @@ impl Model {
         plus
     }
 
+    /// Creates a new expression that represents the sum of the provided variables.
+    ///
+    /// # Panics
+    ///
+    /// Function will panic if provided slice is empty.
+    #[must_use]
+    pub fn sum(&mut self, xs: &[VarId]) -> VarId {
+        assert!(!xs.is_empty());
+
+        let min = xs.iter().copied().map(|id| self.vars[*id].min).sum();
+        let max = xs.iter().copied().map(|id| self.vars[*id].max).sum();
+
+        let sum = self.new_var(min, max);
+
+        let id = PropId::Sum(self.props.sum.len());
+
+        self.props.sum.push(props::PropSum);
+
+        self.deps.props.sum.push((sum, xs.to_vec()));
+
+        for &x in xs {
+            self.deps.vars[*x].push(id);
+        }
+
+        sum
+    }
+
     /// Enforces constraint `x` == `y`.
     pub fn eq(&mut self, x: impl IntoVarId, y: impl IntoVarId) {
         let (x, y) = (x.into_var_id(self), y.into_var_id(self));

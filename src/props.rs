@@ -18,6 +18,7 @@ pub enum PropId {
     ScalePos(usize),
     ScaleNeg(usize),
     Plus(usize),
+    Sum(usize),
     Eq(usize),
 }
 
@@ -27,6 +28,7 @@ pub struct Props {
     pub scale_pos: Vec<PropScalePos>,
     pub scale_neg: Vec<PropScaleNeg>,
     pub plus: Vec<PropPlus>,
+    pub sum: Vec<PropSum>,
     pub eq: Vec<PropEq>,
 }
 
@@ -111,6 +113,46 @@ impl Propagate for PropPlus {
         vars.set_min_and_max(x, x_min_new, x_max_new);
         vars.set_min_and_max(y, y_min_new, y_max_new);
         vars.set_min_and_max(p, min, max);
+
+        Some(vars)
+    }
+}
+
+/// Sum of arbitrary number of variables.
+#[derive(Clone, Debug)]
+pub struct PropSum;
+
+impl Propagate for PropSum {
+    type Deps = (VarId, Vec<VarId>);
+
+    fn propagate(&mut self, (s, xs): &Self::Deps, mut vars: Vars) -> Option<Vars> {
+        let (sum_of_mins, sum_of_maxs) = xs
+            .iter()
+            .copied()
+            .map(|id| &vars[id])
+            .fold((0, 0), |(min, max), x| (min + x.min, max + x.max));
+
+        let var = &vars[*s];
+
+        let min = max_of(sum_of_mins, var.min);
+        let max = min_of(sum_of_maxs, var.max);
+
+        if min > max {
+            return None;
+        }
+
+        vars.set_min_and_max(*s, min, max);
+
+        for &x in xs {
+            let x_min_new = min - (sum_of_maxs - vars[x].max);
+            let x_max_new = max - (sum_of_mins - vars[x].min);
+
+            if x_min_new > x_max_new {
+                return None;
+            }
+
+            vars.set_min_and_max(x, x_min_new, x_max_new);
+        }
 
         Some(vars)
     }

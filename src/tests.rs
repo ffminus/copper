@@ -16,6 +16,21 @@ fn plus() {
 }
 
 #[test]
+fn sum() {
+    let mut m = Model::default();
+
+    let x = m.new_var(0, 5);
+    let y = m.new_var(3, 6);
+
+    let sum = m.sum(&[x, y]);
+
+    let solution = m.minimize(sum).unwrap();
+
+    assert_eq!(solution[x], 0);
+    assert_eq!(solution[y], 3);
+}
+
+#[test]
 fn eq() {
     let mut m = Model::default();
 
