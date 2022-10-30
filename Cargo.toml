@@ -1,8 +1,13 @@
 [package]
-name    = "copper"
-version = "0.1.0"
-edition = "2021"
-license = "LICENSE"
-readme  = "README.md"
+name        = "copper"
+authors     = ["ffminus <ffminus@protonmail.com>"]
+description = "A constraint programming solver for Rust"
+version     = "0.1.0"
+edition     = "2021"
+license     = "LICENSE"
+repository  = "https://github.com/ffminus/copper"
+readme      = "README.md"
+keywords    = ["solver", "constraint"]
+categories  = ["mathematics", "science"]
 
 [dependencies]
