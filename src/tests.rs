@@ -133,7 +133,7 @@ fn max_to_min() {
 
     let x = m.new_var(0, 5);
 
-    let solution = m.with_brancher::<branch::SetMaxToMin>().solve().unwrap();
+    let solution = m.with_enumerator::<branch::SetMaxToMin>().solve().unwrap();
 
     assert_eq!(solution[x], 5);
 }

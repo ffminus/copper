@@ -10,8 +10,8 @@ use std::cmp::Ordering;
 use std::marker::PhantomData;
 
 use crate::props::{self, PropId, Propagate, Props};
-use crate::search::branch::{Branch, SetMinToMax as BrancherDefault};
 use crate::search::branch::pick::{FirstUnset as PickerDefault, Pick};
+use crate::search::branch::{Enumerate, SetMinToMax as EnumeratorDefault};
 use crate::search::{engine, Deps, Searcher};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId};
@@ -195,41 +195,41 @@ impl Model {
         self.props.custom.push(prop);
     }
 
-    fn solve_impl<P: Pick, B: Branch>(&mut self) -> Option<Solution> {
+    fn solve_impl<P: Pick, E: Enumerate>(&mut self) -> Option<Solution> {
         // ? Dummy decision variable to use generic search logic
         let obj = self.cst_impl(0);
 
-        self.search::<P, B>(obj, false)
+        self.search::<P, E>(obj, false)
     }
 
-    fn minimize_impl<P: Pick, B: Branch>(&self, obj: VarId) -> Option<Solution> {
-        self.search::<P, B>(obj, true)
+    fn minimize_impl<P: Pick, E: Enumerate>(&self, obj: VarId) -> Option<Solution> {
+        self.search::<P, E>(obj, true)
     }
 
-    fn maximize_impl<P: Pick, B: Branch>(mut self, obj: VarId) -> Option<Solution> {
+    fn maximize_impl<P: Pick, E: Enumerate>(mut self, obj: VarId) -> Option<Solution> {
         let obj_opposite = self.scale_impl(obj, -1);
 
-        self.minimize_impl::<P, B>(obj_opposite)
+        self.minimize_impl::<P, E>(obj_opposite)
     }
 
-    fn search<P: Pick, B: Branch>(&self, obj: VarId, is_exhaustive: bool) -> Option<Solution> {
+    fn search<P: Pick, E: Enumerate>(&self, obj: VarId, is_exhaustive: bool) -> Option<Solution> {
         Searcher::new(&self.deps, obj, is_exhaustive)
-            .search::<P, B, engine::Stack<_, _>>(&self.vars, &self.props)
+            .search::<P, E, engine::Stack<_, _>>(&self.vars, &self.props)
     }
 }
 
 /// Model and branching strategy to be applied during search.
-pub struct Strategy<P: Pick, B: Branch> {
+pub struct Strategy<P: Pick, E: Enumerate> {
     model: Model,
 
     _p: PhantomData<P>,
-    _b: PhantomData<B>,
+    _b: PhantomData<E>,
 }
 
 /// Default branching strategy used if user does not specify one.
-pub type StrategyDefault = Strategy<PickerDefault, BrancherDefault>;
+pub type StrategyDefault = Strategy<PickerDefault, EnumeratorDefault>;
 
-impl<P: Pick, B: Branch> Strategy<P, B> {
+impl<P: Pick, E: Enumerate> Strategy<P, E> {
     const fn new(model: Model) -> Self {
         Self {
             model,
@@ -241,14 +241,14 @@ impl<P: Pick, B: Branch> Strategy<P, B> {
     /// Performs search and returns the first assignment found that satisfies all constraints.
     #[must_use]
     pub fn solve(&mut self) -> Option<Solution> {
-        self.model.solve_impl::<P, B>()
+        self.model.solve_impl::<P, E>()
     }
 
     fn minimize_impl(self, obj: VarId) -> Option<Solution> {
-        self.model.minimize_impl::<P, B>(obj)
+        self.model.minimize_impl::<P, E>(obj)
     }
 
     fn maximize_impl(self, obj: VarId) -> Option<Solution> {
-        self.model.maximize_impl::<P, B>(obj)
+        self.model.maximize_impl::<P, E>(obj)
     }
 }

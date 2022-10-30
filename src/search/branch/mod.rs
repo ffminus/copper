@@ -20,14 +20,14 @@ pub enum Mutation {
 }
 
 /// Enumerate mutations on pivot variable when branching.
-pub trait Branch: Clone {
+pub trait Enumerate: Clone {
     /// Iterator over mutations to apply to generate branches to explore.
     type Iter: Iterator<Item = Mutation>;
 
-    /// Initialize brancher on search start.
-    fn new_brancher() -> Self;
+    /// Initialize enumerator on search start.
+    fn new_enumerator() -> Self;
 
-    /// Initialize brancher from pivot's current domain.
+    /// Initialize iterator from pivot's current domain.
     fn branch_on(&mut self, pivot: &Var) -> Self::Iter;
 }
 
@@ -35,10 +35,10 @@ pub trait Branch: Clone {
 #[derive(Clone)]
 pub struct SetMinToMax;
 
-impl Branch for SetMinToMax {
+impl Enumerate for SetMinToMax {
     type Iter = SetMinToMaxIter;
 
-    fn new_brancher() -> Self {
+    fn new_enumerator() -> Self {
         Self
     }
 
@@ -62,10 +62,10 @@ impl Iterator for SetMinToMaxIter {
 #[derive(Clone)]
 pub struct SetMaxToMin;
 
-impl Branch for SetMaxToMin {
+impl Enumerate for SetMaxToMin {
     type Iter = SetMaxToMinIter;
 
-    fn new_brancher() -> Self {
+    fn new_enumerator() -> Self {
         Self
     }
 

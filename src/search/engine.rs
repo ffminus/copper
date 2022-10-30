@@ -2,27 +2,27 @@ use std::rc::Rc;
 
 use crate::solution::Solution;
 
-use super::branch::Branch;
 use super::branch::pick::Pick;
+use super::branch::Enumerate;
 use super::{Choice, Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.
-pub trait Engine<P: Pick, B: Branch> {
+pub trait Engine<P: Pick, E: Enumerate> {
     /// Initialize engine without requiring a `Default` bound on its generic parameter.
     fn new_engine() -> Self;
 
     /// Perform search, keeping track of spaces to explore on branching.
-    fn search(self, space: Space<P, B>, searcher: &Searcher) -> Option<Solution>;
+    fn search(self, space: Space<P, E>, searcher: &Searcher) -> Option<Solution>;
 }
 
 /// Single-threaded LIFO list of nodes to explore.
-pub struct Stack<P: Pick, B: Branch> {
+pub struct Stack<P: Pick, E: Enumerate> {
     solution: Option<Solution>,
 
-    tasks: Vec<(Choice, Rc<Space<P, B>>)>,
+    tasks: Vec<(Choice, Rc<Space<P, E>>)>,
 }
 
-impl<P: Pick, B: Branch> Engine<P, B> for Stack<P, B> {
+impl<P: Pick, E: Enumerate> Engine<P, E> for Stack<P, E> {
     fn new_engine() -> Self {
         Self {
             solution: None,
@@ -30,7 +30,7 @@ impl<P: Pick, B: Branch> Engine<P, B> for Stack<P, B> {
         }
     }
 
-    fn search(mut self, space: Space<P, B>, searcher: &Searcher) -> Option<Solution> {
+    fn search(mut self, space: Space<P, E>, searcher: &Searcher) -> Option<Solution> {
         self.push_tasks(space);
 
         while let Some((choice, space)) = self.tasks.pop() {
@@ -69,11 +69,11 @@ impl<P: Pick, B: Branch> Engine<P, B> for Stack<P, B> {
     }
 }
 
-impl<P: Pick, B: Branch> Stack<P, B> {
-    fn push_tasks(&mut self, mut space: Space<P, B>) {
+impl<P: Pick, E: Enumerate> Stack<P, E> {
+    fn push_tasks(&mut self, mut space: Space<P, E>) {
         // Select pivot variable to branch on
         if let Some(pivot) = space.picker.pick(&space.vars) {
-            let mutations = space.brancher.branch_on(&space.vars[pivot]);
+            let mutations = space.enumerator.branch_on(&space.vars[pivot]);
 
             // Store a single copy of search space, drops when all choices have been explored
             let space = Rc::new(space);
