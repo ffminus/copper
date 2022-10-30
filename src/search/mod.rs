@@ -1,4 +1,5 @@
 pub mod backlog;
+pub mod branch;
 
 use std::collections::VecDeque;
 
@@ -7,6 +8,7 @@ use crate::solution::Solution;
 use crate::vars::{Var, Vars};
 
 use self::backlog::Backlog;
+use self::branch::{Branch, Choice};
 
 /// Store immutable model variables referenced during search.
 pub struct Searcher<'s> {
@@ -34,6 +36,19 @@ impl<'s> Searcher<'s> {
 
     fn propagate_with_all_props(&self, props: &Props, space: Space) -> Propagated {
         self.propagate(space, (0..props.eq.len()).map(PropId::Eq).collect())
+    }
+
+    fn branch(&self, branch: &Branch, mut space: Space) -> Propagated {
+        // Apply selected branch to search space
+        match branch.choice {
+            Choice::Set(val) => space.vars.set_unchecked(branch.pivot, val),
+        }
+
+        // Only set dependent propagators as active
+        let mut agenda = VecDeque::new();
+        self.schedule_props_from_domain_changes(&mut space.vars, &mut agenda);
+
+        self.propagate(space, agenda)
     }
 
     fn propagate(&self, mut space: Space, mut agenda: VecDeque<PropId>) -> Propagated {

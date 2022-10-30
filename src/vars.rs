@@ -49,6 +49,17 @@ impl Vars {
         }
     }
 
+    pub fn set_unchecked(&mut self, id: VarId, value: i32) {
+        let var = &mut self.vars[*id];
+
+        if !var.is_set() {
+            var.min = value;
+            var.max = value;
+
+            self.events.insert(id);
+        }
+    }
+
     pub fn set_min_and_max(&mut self, id: VarId, min: i32, max: i32) {
         self.set_min(id, min);
         self.set_max(id, max);
