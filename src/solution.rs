@@ -7,13 +7,19 @@ use crate::vars::VarId;
 pub struct Solution(Vec<i32>);
 
 impl Solution {
+    /// Access the solution value of a slice of variables.
+    #[must_use]
+    pub fn get_values(&self, xs: &[VarId]) -> Vec<i32> {
+        self.get_values_impl(xs)
+    }
+}
+
+impl Solution {
     pub(crate) const fn new(assignment: Vec<i32>) -> Self {
         Self(assignment)
     }
 
-    /// Access the solution value of a slice of variables.
-    #[must_use]
-    pub fn get_values(&self, xs: &[VarId]) -> Vec<i32> {
+    fn get_values_impl(&self, xs: &[VarId]) -> Vec<i32> {
         xs.iter().map(|id| self[*id]).collect()
     }
 }
