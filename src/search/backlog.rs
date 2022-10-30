@@ -2,8 +2,8 @@ use std::rc::Rc;
 
 use crate::solution::Solution;
 
-use super::branch::{branch, Choice};
-use super::{Propagated, Searcher, Space};
+use super::branch::branch;
+use super::{Choice, Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.
 pub trait Backlog {

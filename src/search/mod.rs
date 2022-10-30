@@ -8,7 +8,7 @@ use crate::solution::Solution;
 use crate::vars::{Var, VarId, Vars};
 
 use self::backlog::Backlog;
-use self::branch::{Choice, Mutation};
+use self::branch::Mutation;
 
 /// Store immutable model variables referenced during search.
 pub struct Searcher<'s> {
@@ -158,4 +158,11 @@ pub struct DepsProps {
     pub sum: Vec<props::PropSumDeps>,
     pub eq: Vec<props::PropEqDeps>,
     pub leq: Vec<props::PropLeqDeps>,
+}
+
+/// Branch to be applied to mutate search space.
+#[derive(Debug)]
+pub struct Choice {
+    pub pivot: VarId,
+    pub mutation: Mutation,
 }

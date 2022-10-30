@@ -1,17 +1,6 @@
-use crate::vars::{VarId, Vars};
+use crate::vars::Vars;
 
-/// Branch to be applied to mutate search space.
-#[derive(Debug)]
-pub struct Choice {
-    pub pivot: VarId,
-    pub mutation: Mutation,
-}
-
-impl Choice {
-    const fn new(pivot: VarId, mutation: Mutation) -> Self {
-        Self { pivot, mutation }
-    }
-}
+use super::Choice;
 
 /// Change to apply to a variable to restrict its domain.
 #[derive(Debug)]
@@ -27,5 +16,8 @@ pub fn branch(vars: &Vars) -> impl Iterator<Item = Choice> {
     // Iterate over all possible values within domain
     (pivot_var.min..=pivot_var.max)
         .rev()
-        .map(move |value| Choice::new(pivot, Mutation::Set(value)))
+        .map(move |value| Choice {
+            pivot,
+            mutation: Mutation::Set(value),
+        })
 }
