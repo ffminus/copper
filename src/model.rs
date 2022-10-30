@@ -1,4 +1,4 @@
-use crate::props::Props;
+use crate::props::{self, PropId, Props};
 use crate::search::Deps;
 use crate::vars::{Var, VarId};
 
@@ -26,6 +26,19 @@ impl Model {
     #[must_use]
     pub fn cst(&mut self, value: i32) -> VarId {
         self.new_var(value, value)
+    }
+
+    /// Enforces constraint `x` == `y`.
+    pub fn eq(&mut self, x: impl IntoVarId, y: impl IntoVarId) {
+        let (x, y) = (x.into_var_id(self), y.into_var_id(self));
+
+        let id = PropId::Eq(self.props.eq.len());
+
+        self.props.eq.push(props::PropEq);
+
+        self.deps.props.eq.push((x, y));
+        self.deps.vars[*x].push(id);
+        self.deps.vars[*y].push(id);
     }
 }
 
