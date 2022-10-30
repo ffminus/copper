@@ -28,3 +28,21 @@ impl Model {
         self.new_var(value, value)
     }
 }
+
+/// Convenience trait for values that can be converted to a variable id.
+pub trait IntoVarId {
+    /// Convert value to a variable id.
+    fn into_var_id(self, m: &mut Model) -> VarId;
+}
+
+impl IntoVarId for VarId {
+    fn into_var_id(self, _m: &mut Model) -> VarId {
+        self
+    }
+}
+
+impl IntoVarId for i32 {
+    fn into_var_id(self, m: &mut Model) -> VarId {
+        m.cst(self)
+    }
+}

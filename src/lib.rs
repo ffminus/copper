@@ -22,5 +22,5 @@ mod props;
 mod search;
 mod vars;
 
-pub use crate::model::Model;
+pub use crate::model::{IntoVarId, Model};
 pub use crate::vars::VarId;
