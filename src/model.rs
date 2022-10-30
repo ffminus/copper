@@ -131,6 +131,22 @@ impl Model {
         sum
     }
 
+    /// Creates a new expression that represents a linear expression.
+    ///
+    /// # Panics
+    ///
+    /// Function will panic if passed slice is empty.
+    pub fn linear(&mut self, xs: &[VarId], coefs: &[i32]) -> VarId {
+        let terms: Vec<_> = xs
+            .iter()
+            .copied()
+            .zip(coefs.iter().copied())
+            .map(|(x, coef)| self.scale(x, coef))
+            .collect();
+
+        self.sum(&terms)
+    }
+
     /// Enforces constraint `x` == `y`.
     pub fn eq(&mut self, x: impl IntoVarId, y: impl IntoVarId) {
         let (x, y) = (x.into_var_id(self), y.into_var_id(self));
