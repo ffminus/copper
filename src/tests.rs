@@ -12,3 +12,18 @@ fn eq() {
 
     assert_eq!(solution[x], 3);
 }
+
+#[test]
+fn solve() {
+    let mut m = Model::default();
+
+    let x = m.new_var(0, 5);
+    let y = m.new_var(2, 5);
+
+    m.eq(x, y);
+
+    let solution = m.solve().unwrap();
+
+    assert_eq!(solution[x], 2);
+    assert_eq!(solution[y], 2);
+}
