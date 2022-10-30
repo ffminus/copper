@@ -61,6 +61,8 @@
 //! assert_eq!(solution[weight], 102);
 //! assert_eq!(solution[value], 280);
 //! ```
+//!
+//! You can find a more detailed step-by-step example in the documentation for the [Model struct](Model).
 
 mod model;
 mod props;

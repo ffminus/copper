@@ -19,6 +19,120 @@ use crate::vars::{Var, VarId};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Problem definition, with decision variables and constraints.
+///
+/// Optimization problems are modeled with base decision variables and derived expressions.
+/// Use constraints to restrict which values are considered valid assignments.
+/// Start the search with either [solve](Self::solve) to return the first solution
+/// that satisfies all constraints, or [minimize](Self::minimize) (or [maximize](Self::maximize))
+/// to optimize an objective value with exhaustive exploration.
+///
+/// We'll use an example to describe how a typical model is formulated.
+/// Let's say we are building a new PC, and want to be able to play AAA games without going bankrupt.
+///
+/// ```
+/// // All problem formulations will start with a model object
+/// let mut m = copper::Model::new();
+/// ```
+///
+/// # Variables and expressions
+///
+/// Decision variables represent a decision, or an assignment; they are declared with a domain.
+///
+/// ```
+/// # let mut m = copper::Model::new();
+/// // How many monitors do we buy: we need at least one, but not more than three
+/// let n_monitors = m.new_var(1, 3);
+///
+/// // Each GPU model has a fixed price, and an associated benchmark score
+/// let gpu_prices = [150, 250, 500];
+/// let gpu_scores = [100, 400, 800];
+///
+/// // We use binary decision variables to represent "do I pick this GPU?"
+/// let gpus = m.new_vars_binary(gpu_scores.len());
+/// ```
+///
+/// Using variables as building blocks, we can create expressions to represent other quantities.
+///
+///
+/// ```
+/// # let mut m = copper::Model::new();
+/// # let n_monitors = m.new_var(1, 3);
+/// # let gpu_prices = [150, 250, 500];
+/// # let gpu_scores = [100, 400, 800];
+/// # let gpus = m.new_vars_binary(gpu_scores.len());
+/// // Each monitor costs $100, and brings a score bump of 250
+/// let price_monitors = m.scale(n_monitors, 100);
+/// let score_monitors = m.scale(n_monitors, 250);
+///
+/// // Linear expressions let us consider a GPU's data only if it is selected
+/// let price_gpu = m.linear(&gpus, &gpu_prices);
+/// let score_gpu = m.linear(&gpus, &gpu_scores);
+///
+/// // Let's say we have already set our mind on a specific keyboard, mouse and case
+/// let price_others = m.cst(200);
+///
+/// // The overall price of our build
+/// let price = m.sum(&[price_monitors, price_gpu, price_others]);
+///
+/// // What we want to maximize, how much we'll value this particular build
+/// let score = m.plus(score_monitors, score_gpu);
+/// ```
+///
+/// # Constraints
+///
+/// Establish relationships between variables, and restrictions on feasible values using constraints.
+///
+/// ```
+/// # let mut m = copper::Model::new();
+/// # let n_monitors = m.new_var(1, 3);
+/// # let gpu_prices = [150, 250, 500];
+/// # let gpu_scores = [100, 400, 800];
+/// # let gpus = m.new_vars_binary(gpu_scores.len());
+/// # let price_monitors = m.scale(n_monitors, 100);
+/// # let score_monitors = m.scale(n_monitors, 240);
+/// # let price_gpu = m.linear(&gpus, &gpu_prices);
+/// # let score_gpu = m.linear(&gpus, &gpu_scores);
+/// # let price_others = m.cst(200);
+/// # let price = m.sum(&[price_monitors, price_gpu, price_others]);
+/// # let score = m.plus(score_monitors, score_gpu);
+/// // Exactly one GPU: we want to run Crysis, but our case must fit under the desk
+/// let n_gpus = m.sum(&gpus);
+/// m.eq(n_gpus, 1);
+///
+/// // We got $800 for our birthday, that will be our budget
+/// m.leq(price, 800);
+///```
+///
+/// # Search
+///
+/// Contrary to hard constraints, objectives are soft: they do not determine feasibility but optimality.
+///
+///
+/// ```
+/// # let mut m = copper::Model::new();
+/// # let n_monitors = m.new_var(1, 3);
+/// # let gpu_prices = [150, 250, 500];
+/// # let gpu_scores = [100, 400, 800];
+/// # let gpus = m.new_vars_binary(gpu_scores.len());
+/// # let price_monitors = m.scale(n_monitors, 100);
+/// # let score_monitors = m.scale(n_monitors, 250);
+/// # let price_gpu = m.linear(&gpus, &gpu_prices);
+/// # let score_gpu = m.linear(&gpus, &gpu_scores);
+/// # let price_others = m.cst(200);
+/// # let price = m.sum(&[price_monitors, price_gpu, price_others]);
+/// # let score = m.plus(score_monitors, score_gpu);
+/// # let n_gpus = m.sum(&gpus);
+/// # m.eq(n_gpus, 1);
+/// # m.leq(price, 800);
+/// // Let the solver find the assignment that upholds our constraints and maximizes our score
+/// let solution = m.maximize(score).unwrap();
+///
+/// // Our optimal build has three monitors and a mid-tier GPU, we even have some left-over cash!
+/// assert_eq!(solution[n_monitors], 3);
+/// assert_eq!(solution.get_values_binary(&gpus), vec![false, true, false]);
+/// assert_eq!(solution[score], 1150);
+/// assert_eq!(solution[price],  750);
+///```
 #[derive(Debug, Default)]
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub struct Model {
