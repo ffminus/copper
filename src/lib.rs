@@ -19,6 +19,7 @@
 
 mod model;
 mod props;
+mod search;
 mod vars;
 
 pub use crate::model::Model;

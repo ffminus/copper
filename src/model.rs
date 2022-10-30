@@ -1,4 +1,5 @@
 use crate::props::Props;
+use crate::search::Deps;
 use crate::vars::{Var, VarId};
 
 /// Problem definition, with decision variables and constraints.
@@ -6,6 +7,7 @@ use crate::vars::{Var, VarId};
 pub struct Model {
     vars: Vec<Var>,
     props: Props,
+    deps: Deps,
 }
 
 impl Model {
@@ -15,6 +17,7 @@ impl Model {
         let id = VarId::new(self.vars.len());
 
         self.vars.push(Var { min, max });
+        self.deps.vars.push(Vec::new());
 
         id
     }
