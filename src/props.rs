@@ -1,5 +1,6 @@
 use std::cmp::{max as max_of, min as min_of};
 
+use crate::utils::NumExt;
 use crate::vars::{VarId, Vars};
 
 /// Enforce a specific constraint by removing assignments that break it from variable domains.
@@ -14,13 +15,69 @@ pub trait Propagate {
 /// Discriminate propagator type with enum to enable static dispatch and dependency injection.
 #[derive(Clone, Copy, Debug)]
 pub enum PropId {
+    ScalePos(usize),
+    ScaleNeg(usize),
     Eq(usize),
 }
 
 /// Helper type to group propagators by type.
 #[derive(Clone, Debug, Default)]
 pub struct Props {
+    pub scale_pos: Vec<PropScalePos>,
+    pub scale_neg: Vec<PropScaleNeg>,
     pub eq: Vec<PropEq>,
+}
+
+/// Scaling factor constraint with a positive coefficient.
+#[derive(Clone, Debug)]
+pub struct PropScalePos;
+
+impl Propagate for PropScalePos {
+    type Deps = (VarId, VarId, i32);
+
+    fn propagate(&mut self, deps: &Self::Deps, mut vars: Vars) -> Option<Vars> {
+        let (x, y, coef) = *deps;
+
+        let (var_x, var_y) = (&vars[x], &vars[y]);
+
+        let min = max_of(var_x.min, var_y.min.next_multiple_of_tmp(coef) / coef);
+        let max = min_of(var_x.max, (var_y.max - var_y.max.rem_euclid(coef)) / coef);
+
+        if min > max {
+            None
+        } else {
+            vars.set_min_and_max(x, min, max);
+            vars.set_min_and_max(y, min * coef, max * coef);
+
+            Some(vars)
+        }
+    }
+}
+
+/// Scaling factor constraint with a negative coefficient.
+#[derive(Clone, Debug)]
+pub struct PropScaleNeg;
+
+impl Propagate for PropScaleNeg {
+    type Deps = (VarId, VarId, i32);
+
+    fn propagate(&mut self, deps: &Self::Deps, mut vars: Vars) -> Option<Vars> {
+        let (x, y, coef) = *deps;
+
+        let (var_x, var_y) = (&vars[x], &vars[y]);
+
+        let min = max_of(var_x.min, (var_y.max - var_y.max.rem_euclid(-coef)) / coef);
+        let max = min_of(var_x.max, var_y.min.next_multiple_of_tmp(-coef) / coef);
+
+        if min > max {
+            None
+        } else {
+            vars.set_min_and_max(x, min, max);
+            vars.set_min_and_max(y, max * coef, min * coef);
+
+            Some(vars)
+        }
+    }
 }
 
 #[derive(Clone, Debug)]

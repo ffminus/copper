@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::props::{self, PropId, Props};
 use crate::search::{backlog, Deps, Searcher};
 use crate::solution::Solution;
@@ -33,6 +35,52 @@ impl Model {
     #[must_use]
     pub fn cst(&mut self, value: i32) -> VarId {
         self.new_var(value, value)
+    }
+
+    /// Creates a new expression that represents `coef` * `x`.
+    #[must_use]
+    pub fn scale(&mut self, x: impl IntoVarId, coef: i32) -> VarId {
+        match coef.cmp(&0) {
+            Ordering::Less => self.scale_neg(x, coef),
+            Ordering::Equal => self.cst(0),
+            Ordering::Greater => self.scale_pos(x, coef),
+        }
+    }
+
+    fn scale_pos(&mut self, x: impl IntoVarId, coef: i32) -> VarId {
+        let x = x.into_var_id(self);
+
+        let var = &self.vars[*x];
+
+        let s = self.new_var(var.min * coef, var.max * coef);
+
+        let id = PropId::ScalePos(self.props.scale_pos.len());
+
+        self.props.scale_pos.push(props::PropScalePos);
+
+        self.deps.props.scale_pos.push((x, s, coef));
+        self.deps.vars[*x].push(id);
+        self.deps.vars[*s].push(id);
+
+        s
+    }
+
+    fn scale_neg(&mut self, x: impl IntoVarId, coef: i32) -> VarId {
+        let x = x.into_var_id(self);
+
+        let var = &self.vars[*x];
+
+        let s = self.new_var(var.max * coef, var.min * coef);
+
+        let id = PropId::ScaleNeg(self.props.scale_neg.len());
+
+        self.props.scale_neg.push(props::PropScaleNeg);
+
+        self.deps.props.scale_neg.push((x, s, coef));
+        self.deps.vars[*x].push(id);
+        self.deps.vars[*s].push(id);
+
+        s
     }
 
     /// Enforces constraint `x` == `y`.

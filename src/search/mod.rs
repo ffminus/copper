@@ -41,7 +41,13 @@ impl<'s> Searcher<'s> {
     }
 
     fn propagate_with_all_props(&self, props: &Props, space: Space) -> Propagated {
-        self.propagate(space, (0..props.eq.len()).map(PropId::Eq).collect())
+        let agenda = (0..props.scale_pos.len())
+            .map(PropId::ScalePos)
+            .chain((0..props.scale_neg.len()).map(PropId::ScaleNeg))
+            .chain((0..props.eq.len()).map(PropId::Eq))
+            .collect();
+
+        self.propagate(space, agenda)
     }
 
     fn branch(&self, branch: &Branch, mut space: Space) -> Propagated {
@@ -62,6 +68,12 @@ impl<'s> Searcher<'s> {
         while let Some(id) = agenda.pop_front() {
             // Branch on id type, to avoid dynamic dispatch for propagator and its dependencies
             let vars_opt = match id {
+                PropId::ScalePos(i) => {
+                    space.props.scale_pos[i].propagate(&self.deps.props.scale_pos[i], space.vars)
+                }
+                PropId::ScaleNeg(i) => {
+                    space.props.scale_neg[i].propagate(&self.deps.props.scale_neg[i], space.vars)
+                }
                 PropId::Eq(i) => space.props.eq[i].propagate(&self.deps.props.eq[i], space.vars),
             };
 
@@ -127,5 +139,7 @@ pub struct Deps {
 /// Helper struct to group dependencies for each propagator type.
 #[derive(Debug, Default)]
 pub struct DepsProps {
+    pub scale_pos: Vec<<props::PropScalePos as Propagate>::Deps>,
+    pub scale_neg: Vec<<props::PropScaleNeg as Propagate>::Deps>,
     pub eq: Vec<<props::PropEq as Propagate>::Deps>,
 }
