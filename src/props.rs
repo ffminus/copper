@@ -47,7 +47,7 @@ pub struct PropScalePos;
 impl Propagate for PropScalePos {
     type Deps = (VarId, VarId, i32);
 
-    fn propagate(&mut self, deps: &Self::Deps, mut vars: Vars) -> ResultProp {
+    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp {
         let (x, y, coef) = *deps;
 
         let (var_x, var_y) = (&vars[x], &vars[y]);
@@ -55,14 +55,10 @@ impl Propagate for PropScalePos {
         let min = max_of(var_x.min, var_y.min.next_multiple_of_tmp(coef) / coef);
         let max = min_of(var_x.max, (var_y.max - var_y.max.rem_euclid(coef)) / coef);
 
-        if min > max {
-            Err(Failed)
-        } else {
-            vars.set_min_and_max(x, min, max);
-            vars.set_min_and_max(y, min * coef, max * coef);
+        let vars = vars.set_min_and_max(x, min, max)?;
+        let vars = vars.set_min_and_max(y, min * coef, max * coef)?;
 
-            Ok(vars)
-        }
+        Ok(vars)
     }
 }
 
@@ -73,7 +69,7 @@ pub struct PropScaleNeg;
 impl Propagate for PropScaleNeg {
     type Deps = (VarId, VarId, i32);
 
-    fn propagate(&mut self, deps: &Self::Deps, mut vars: Vars) -> ResultProp {
+    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp {
         let (x, y, coef) = *deps;
 
         let (var_x, var_y) = (&vars[x], &vars[y]);
@@ -81,14 +77,10 @@ impl Propagate for PropScaleNeg {
         let min = max_of(var_x.min, (var_y.max - var_y.max.rem_euclid(-coef)) / coef);
         let max = min_of(var_x.max, var_y.min.next_multiple_of_tmp(-coef) / coef);
 
-        if min > max {
-            Err(Failed)
-        } else {
-            vars.set_min_and_max(x, min, max);
-            vars.set_min_and_max(y, max * coef, min * coef);
+        let vars = vars.set_min_and_max(x, min, max)?;
+        let vars = vars.set_min_and_max(y, max * coef, min * coef)?;
 
-            Ok(vars)
-        }
+        Ok(vars)
     }
 }
 
@@ -99,7 +91,7 @@ pub struct PropPlus;
 impl Propagate for PropPlus {
     type Deps = (VarId, (VarId, VarId));
 
-    fn propagate(&mut self, deps: &Self::Deps, mut vars: Vars) -> ResultProp {
+    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp {
         let (p, (x, y)) = *deps;
 
         let (var_x, var_y, var_p) = (&vars[x], &vars[y], &vars[p]);
@@ -107,20 +99,12 @@ impl Propagate for PropPlus {
         let min = max_of(var_x.min + var_y.min, var_p.min);
         let max = min_of(var_x.max + var_y.max, var_p.max);
 
-        if min > max {
-            return Err(Failed);
-        }
-
         let (x_min_new, x_max_new) = (min - var_y.max, max - var_y.min);
         let (y_min_new, y_max_new) = (min - var_x.max, max - var_x.min);
 
-        if x_min_new > x_max_new || y_min_new > y_max_new {
-            return Err(Failed);
-        }
-
-        vars.set_min_and_max(x, x_min_new, x_max_new);
-        vars.set_min_and_max(y, y_min_new, y_max_new);
-        vars.set_min_and_max(p, min, max);
+        let vars = vars.set_min_and_max(x, x_min_new, x_max_new)?;
+        let vars = vars.set_min_and_max(y, y_min_new, y_max_new)?;
+        let vars = vars.set_min_and_max(p, min, max)?;
 
         Ok(vars)
     }
@@ -145,21 +129,13 @@ impl Propagate for PropSum {
         let min = max_of(sum_of_mins, var.min);
         let max = min_of(sum_of_maxs, var.max);
 
-        if min > max {
-            return Err(Failed);
-        }
-
-        vars.set_min_and_max(*s, min, max);
+        vars = vars.set_min_and_max(*s, min, max)?;
 
         for &x in xs {
             let x_min_new = min - (sum_of_maxs - vars[x].max);
             let x_max_new = max - (sum_of_mins - vars[x].min);
 
-            if x_min_new > x_max_new {
-                return Err(Failed);
-            }
-
-            vars.set_min_and_max(x, x_min_new, x_max_new);
+            vars = vars.set_min_and_max(x, x_min_new, x_max_new)?;
         }
 
         Ok(vars)
@@ -172,7 +148,7 @@ pub struct PropEq;
 impl Propagate for PropEq {
     type Deps = (VarId, VarId);
 
-    fn propagate(&mut self, deps: &Self::Deps, mut vars: Vars) -> ResultProp {
+    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp {
         let (x, y) = *deps;
 
         let (var_x, var_y) = (&vars[x], &vars[y]);
@@ -180,14 +156,10 @@ impl Propagate for PropEq {
         let min = max_of(var_x.min, var_y.min);
         let max = min_of(var_x.max, var_y.max);
 
-        if min > max {
-            Err(Failed)
-        } else {
-            vars.set_min_and_max(x, min, max);
-            vars.set_min_and_max(y, min, max);
+        let vars = vars.set_min_and_max(x, min, max)?;
+        let vars = vars.set_min_and_max(y, min, max)?;
 
-            Ok(vars)
-        }
+        Ok(vars)
     }
 }
 
@@ -198,19 +170,11 @@ pub struct PropLeq;
 impl Propagate for PropLeq {
     type Deps = (VarId, VarId);
 
-    fn propagate(&mut self, deps: &Self::Deps, mut vars: Vars) -> ResultProp {
+    fn propagate(&mut self, deps: &Self::Deps, vars: Vars) -> ResultProp {
         let (x, y) = *deps;
 
-        let (var_x, var_y) = (&vars[x], &vars[y]);
+        let max = min_of(vars[x].max, vars[y].max);
 
-        let max = min_of(var_x.max, var_y.max);
-
-        if var_x.min > max {
-            Err(Failed)
-        } else {
-            vars.set_max(x, max);
-
-            Ok(vars)
-        }
+        vars.set_max(x, max)
     }
 }
