@@ -21,3 +21,4 @@ mod model;
 mod vars;
 
 pub use crate::model::Model;
+pub use crate::vars::VarId;

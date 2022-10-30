@@ -1,4 +1,4 @@
-use crate::vars::Var;
+use crate::vars::{Var, VarId};
 
 /// Problem definition, with decision variables and constraints.
 #[derive(Debug, Default)]
@@ -8,7 +8,12 @@ pub struct Model {
 
 impl Model {
     /// Creates a new decision variable with domain [`min`, `max`].
-    pub fn new_var(&mut self, min: i32, max: i32) {
+    #[must_use]
+    pub fn new_var(&mut self, min: i32, max: i32) -> VarId {
+        let id = VarId::new(self.vars.len());
+
         self.vars.push(Var { min, max });
+
+        id
     }
 }
