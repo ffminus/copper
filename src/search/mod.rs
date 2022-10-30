@@ -91,7 +91,7 @@ impl<'s> Searcher<'s> {
 }
 
 /// State required for exploring a search tree.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Space {
     vars: Vars,
     props: Props,
