@@ -25,10 +25,22 @@ impl Model {
         id
     }
 
+    /// Creates `n` new decision variables with domain [`min`, `max`].
+    #[must_use]
+    pub fn new_vars(&mut self, n: usize, min: i32, max: i32) -> Vec<VarId> {
+        (0..n).map(|_| self.new_var(min, max)).collect()
+    }
+
     /// Creates a new binary decision variable.
     #[must_use]
     pub fn new_var_binary(&mut self) -> VarId {
         self.new_var(0, 1)
+    }
+
+    /// Creates `n` new binary decision variables.
+    #[must_use]
+    pub fn new_vars_binary(&mut self, n: usize) -> Vec<VarId> {
+        (0..n).map(|_| self.new_var_binary()).collect()
     }
 
     /// Creates a new constant decision variable that can be used in constraints.
