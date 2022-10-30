@@ -39,7 +39,7 @@ impl Engine for Stack {
                     Propagated::Fixed(space) => self.push_tasks::<P, B>(space),
                     Propagated::Done(candidate) => {
                         // End search early if user is only looking for feasibility
-                        if searcher.stop_on_feasibility {
+                        if !searcher.is_exhaustive {
                             return Some(candidate);
                         }
 

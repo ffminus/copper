@@ -199,11 +199,11 @@ impl Model {
         // ? Dummy decision variable to use generic search logic
         let obj = self.cst_impl(0);
 
-        self.search::<P, B>(obj, true)
+        self.search::<P, B>(obj, false)
     }
 
     fn minimize_impl<P: Pick, B: Branch>(&self, obj: VarId) -> Option<Solution> {
-        self.search::<P, B>(obj, false)
+        self.search::<P, B>(obj, true)
     }
 
     fn maximize_impl<P: Pick, B: Branch>(mut self, obj: VarId) -> Option<Solution> {
@@ -212,8 +212,8 @@ impl Model {
         self.minimize_impl::<P, B>(obj_opposite)
     }
 
-    fn search<P: Pick, B: Branch>(&self, ob: VarId, stop_on_feasibility: bool) -> Option<Solution> {
-        Searcher::new(&self.deps, ob, stop_on_feasibility)
+    fn search<P: Pick, B: Branch>(&self, obj: VarId, is_exhaustive: bool) -> Option<Solution> {
+        Searcher::new(&self.deps, obj, is_exhaustive)
             .search::<engine::Stack, P, B>(&self.vars, &self.props)
     }
 }

@@ -20,15 +20,15 @@ use self::pick::Pick;
 pub struct Searcher<'s> {
     deps: &'s Deps,
     obj: VarId,
-    stop_on_feasibility: bool,
+    is_exhaustive: bool,
 }
 
 impl<'s> Searcher<'s> {
-    pub const fn new(deps: &'s Deps, obj: VarId, stop_on_feasibility: bool) -> Self {
+    pub const fn new(deps: &'s Deps, obj: VarId, is_exhaustive: bool) -> Self {
         Self {
             deps,
             obj,
-            stop_on_feasibility,
+            is_exhaustive,
         }
     }
 
