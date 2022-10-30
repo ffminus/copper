@@ -58,22 +58,22 @@ impl<'s> Searcher<'s> {
         self.propagate(space, agenda)
     }
 
-    fn branch(&self, choice: &Choice, obj_opt: Option<i32>, mut space: Space) -> ResultProps {
+    fn mutate_then_propagate(&self, c: &Choice, obj_opt: Option<i32>, mut s: Space) -> ResultProps {
         // Apply selected branch to search space
-        space.vars = match choice.mutation {
-            Mutation::Set(val) => space.vars.try_set(choice.pivot, val),
+        s.vars = match c.mutation {
+            Mutation::Set(val) => s.vars.try_set(c.pivot, val),
         }?;
 
         // Prune domains that cannot improve on the current best found objective value
         if let Some(obj) = obj_opt {
-            space.vars = space.vars.try_set_max(self.obj, obj - 1)?;
+            s.vars = s.vars.try_set_max(self.obj, obj - 1)?;
         }
 
         // Only set dependent propagators as active
         let mut agenda = VecDeque::new();
-        self.schedule_props_from_domain_changes(&mut space.vars, &mut agenda);
+        self.schedule_props_from_domain_changes(&mut s.vars, &mut agenda);
 
-        self.propagate(space, agenda)
+        self.propagate(s, agenda)
     }
 
     fn propagate(&self, mut space: Space, mut agenda: VecDeque<PropId>) -> ResultProps {

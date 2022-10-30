@@ -34,7 +34,7 @@ impl Engine for Stack {
                 .map(|solution| solution[searcher.obj]);
 
             // No additional searching required for failed spaces
-            if let Ok(propagated) = searcher.branch(&choice, obj_opt, space) {
+            if let Ok(propagated) = searcher.mutate_then_propagate(&choice, obj_opt, space) {
                 match propagated {
                     Propagated::Fixed(space) => self.push_tasks::<P, B>(space),
                     Propagated::Done(candidate) => {
