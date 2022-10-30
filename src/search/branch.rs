@@ -11,21 +11,29 @@ pub enum Mutation {
 }
 
 /// Enumerate mutations on pivot variable when branching.
-pub trait Branch: Iterator<Item = Mutation> {
+pub trait Branch {
+    /// Iterator over mutations to apply to generate branches to explore.
+    type Iter: Iterator<Item = Mutation>;
+
     /// Initialize brancher from pivot's current domain.
-    fn from_var(pivot: &Var) -> Self;
+    fn branch_on(pivot: &Var) -> Self::Iter;
 }
 
 /// Set each value in current domain of pivot variable iteratively, in ascending order.
-pub struct SetMinToMax(Rev<RangeInclusive<i32>>);
+pub struct SetMinToMax;
 
 impl Branch for SetMinToMax {
-    fn from_var(pivot: &Var) -> Self {
-        Self((pivot.min..=pivot.max).rev())
+    type Iter = SetMinToMaxIter;
+
+    fn branch_on(pivot: &Var) -> Self::Iter {
+        SetMinToMaxIter((pivot.min..=pivot.max).rev())
     }
 }
 
-impl Iterator for SetMinToMax {
+/// Iterator over current domain of pivot variable, in ascending order.
+pub struct SetMinToMaxIter(Rev<RangeInclusive<i32>>);
+
+impl Iterator for SetMinToMaxIter {
     type Item = Mutation;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -34,15 +42,20 @@ impl Iterator for SetMinToMax {
 }
 
 /// Set each value in current domain of pivot variable iteratively, in descending order.
-pub struct SetMaxToMin(RangeInclusive<i32>);
+pub struct SetMaxToMin;
 
 impl Branch for SetMaxToMin {
-    fn from_var(pivot: &Var) -> Self {
-        Self(pivot.min..=pivot.max)
+    type Iter = SetMaxToMinIter;
+
+    fn branch_on(pivot: &Var) -> Self::Iter {
+        SetMaxToMinIter(pivot.min..=pivot.max)
     }
 }
 
-impl Iterator for SetMaxToMin {
+/// Iterator over current domain of pivot variable, in descending order.
+pub struct SetMaxToMinIter(RangeInclusive<i32>);
+
+impl Iterator for SetMaxToMinIter {
     type Item = Mutation;
 
     fn next(&mut self) -> Option<Self::Item> {

@@ -77,7 +77,7 @@ impl<P: Pick> Stack<P> {
             let space = Rc::new(space);
 
             // Queue branches to be explored
-            for mutation in B::from_var(&space.vars[pivot]) {
+            for mutation in B::branch_on(&space.vars[pivot]) {
                 self.tasks
                     .push((Choice { pivot, mutation }, Rc::clone(&space)));
             }
