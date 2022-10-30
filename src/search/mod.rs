@@ -1,6 +1,10 @@
-pub mod backlog;
+/// Domain branching strategies.
 pub mod branch;
+
+/// Variable selection strategies.
 pub mod pick;
+
+pub mod backlog;
 
 use std::collections::VecDeque;
 
