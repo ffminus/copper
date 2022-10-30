@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 use std::ops::{Deref, Index};
 
+use crate::props::{Failed, ResultProp};
+
 /// New-type wrapper to identify decision variables and expressions.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
@@ -58,6 +60,18 @@ impl Var {
     pub const fn is_set(&self) -> bool {
         self.min == self.max
     }
+
+    /// Assign value to variable, if it is contained in its domain.
+    fn set(&mut self, value: i32) -> Result<(), Failed> {
+        if value < self.min || value > self.max {
+            return Err(Failed);
+        }
+
+        self.min = value;
+        self.max = value;
+
+        Ok(())
+    }
 }
 
 /// Decision variable domains, encapsulated to track changes used to schedule propagators.
@@ -76,15 +90,18 @@ impl Vars {
         }
     }
 
-    pub fn set_unchecked(&mut self, id: VarId, value: i32) {
+    pub fn set(mut self, id: VarId, value: i32) -> ResultProp {
         let var = &mut self.vars[*id];
 
-        if !var.is_set() {
-            var.min = value;
-            var.max = value;
+        let was_variable_already_set = var.is_set();
 
+        var.set(value)?;
+
+        if !was_variable_already_set {
             self.events.insert(id);
         }
+
+        Ok(self)
     }
 
     pub fn set_min_and_max(&mut self, id: VarId, min: i32, max: i32) {

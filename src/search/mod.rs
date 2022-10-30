@@ -54,9 +54,9 @@ impl<'s> Searcher<'s> {
 
     fn branch(&self, branch: &Branch, mut space: Space) -> ResultProps {
         // Apply selected branch to search space
-        match branch.choice {
-            Choice::Set(val) => space.vars.set_unchecked(branch.pivot, val),
-        }
+        space.vars = match branch.choice {
+            Choice::Set(val) => space.vars.set(branch.pivot, val)?,
+        };
 
         // Only set dependent propagators as active
         let mut agenda = VecDeque::new();
