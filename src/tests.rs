@@ -1,4 +1,4 @@
-use crate::{Model, Propagate, ResultProp, VarId, Vars};
+use crate::{branch, Model, Propagate, ResultProp, VarId, Vars};
 
 #[test]
 fn plus() {
@@ -125,4 +125,15 @@ fn propagate() {
     let solution = m.solve().unwrap();
 
     assert_eq!(solution[x], 4);
+}
+
+#[test]
+fn max_to_min() {
+    let mut m = Model::new();
+
+    let x = m.new_var(0, 5);
+
+    let solution = m.with_brancher::<branch::SetMaxToMin>().solve().unwrap();
+
+    assert_eq!(solution[x], 5);
 }

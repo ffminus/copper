@@ -32,3 +32,20 @@ impl Iterator for SetMinToMax {
         self.0.next().map(Mutation::Set)
     }
 }
+
+/// Set each value in current domain of pivot variable iteratively, in descending order.
+pub struct SetMaxToMin(RangeInclusive<i32>);
+
+impl Branch for SetMaxToMin {
+    fn from_var(pivot: &Var) -> Self {
+        Self(pivot.min..=pivot.max)
+    }
+}
+
+impl Iterator for SetMaxToMin {
+    type Item = Mutation;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(Mutation::Set)
+    }
+}
