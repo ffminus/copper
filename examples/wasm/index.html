@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+  </head>
+  <body>
+    <script>
+      // Handle used to send messages to web worker
+      let worker;
+
+      (async () => {
+        // Spawn a web worker to run WASM code off the main thread
+        worker = new Worker("/worker.js");
+
+        // Display returned solution in a modal
+        worker.onmessage = ({ data }) => {
+          if (data === undefined) {
+            alert("No feasible solution!");
+          } else {
+            const { weight, value, items } = data;
+
+            // Print out item indexes rather than boolean array
+            const ids = new Set();
+            items.forEach((isSelected, i) => isSelected && ids.add(i + 1));
+
+            alert(`Weight: ${weight}, value: ${value}, items: ${Array.from(ids)}`);
+          }
+        };
+      })();
+
+      const run = () => {
+        const items = Array.from(document.getElementById("items").children);
+
+        const weights = items.map(item => parseInt(item.children[0].value));
+        const values = items.map(item => parseInt(item.children[1].value));
+        const weightMax = parseInt(document.getElementById("weightMax").value);
+
+        worker.postMessage({ weights, values, weightMax });
+      };
+    </script>
+
+    <label>Items (weight and value)</label>
+    <ol id="items">
+      <li><input type="number" value="10" step="1"/><input type="number" value=  "1" step="1"/></li>
+      <li><input type="number" value="60" step="1"/><input type="number" value= "10" step="1"/></li>
+      <li><input type="number" value="30" step="1"/><input type="number" value= "15" step="1"/></li>
+      <li><input type="number" value="40" step="1"/><input type="number" value= "40" step="1"/></li>
+      <li><input type="number" value="30" step="1"/><input type="number" value= "60" step="1"/></li>
+      <li><input type="number" value="20" step="1"/><input type="number" value= "90" step="1"/></li>
+      <li><input type="number" value="20" step="1"/><input type="number" value="100" step="1"/></li>
+      <li><input type="number" value= "2" step="1"/><input type="number" value= "15" step="1"/></li>
+    </ol>
+
+    <label>Maximum weight</label>
+    <input id="weightMax" type="number" value="102" step="1"/>
+
+    <button onclick='run()'>Run</button>
+  </body>
+</html>
