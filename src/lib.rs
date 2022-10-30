@@ -18,6 +18,7 @@
 #![allow(clippy::option_if_let_else)]
 
 mod model;
+mod props;
 mod vars;
 
 pub use crate::model::Model;

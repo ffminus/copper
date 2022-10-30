@@ -1,9 +1,11 @@
+use crate::props::Props;
 use crate::vars::{Var, VarId};
 
 /// Problem definition, with decision variables and constraints.
 #[derive(Debug, Default)]
 pub struct Model {
     vars: Vec<Var>,
+    props: Props,
 }
 
 impl Model {
