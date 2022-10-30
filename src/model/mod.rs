@@ -8,7 +8,7 @@ mod wasm;
 
 use std::cmp::Ordering;
 
-use crate::props::{self, PropId, Props};
+use crate::props::{self, PropId, Propagate, Props};
 use crate::search::{backlog, Deps, Searcher};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId};
@@ -189,6 +189,16 @@ impl Model {
         self.deps.props.leq.push((x, y));
         self.deps.vars[*x].push(id);
         self.deps.vars[*y].push(id);
+    }
+
+    fn propagator_impl(&mut self, prop: Box<dyn Propagate>, deps: &[VarId]) {
+        let id = PropId::Custom(self.props.custom.len());
+
+        for x in deps {
+            self.deps.vars[**x].push(id);
+        }
+
+        self.props.custom.push(prop);
     }
 
     fn minimize_impl(&self, obj: VarId) -> Option<Solution> {

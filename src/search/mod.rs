@@ -88,6 +88,7 @@ impl<'s> Searcher<'s> {
                 }
                 PropId::Eq(i) => props::PropEq::propagate(self.deps.props.eq[i], space.vars),
                 PropId::Leq(i) => props::PropLeq::propagate(self.deps.props.leq[i], space.vars),
+                PropId::Custom(i) => space.props.custom[i].propagate(space.vars),
             }?;
 
             // Mutated variable domains returned if space is not failed by propagator

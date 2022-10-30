@@ -78,4 +78,6 @@ pub use crate::solution::Solution;
 #[cfg(not(feature = "wasm"))]
 pub use crate::model::generic::IntoVarId;
 #[cfg(not(feature = "wasm"))]
-pub use crate::vars::VarId;
+pub use crate::props::{Failed, Propagate, ResultProp};
+#[cfg(not(feature = "wasm"))]
+pub use crate::vars::{VarId, Vars};

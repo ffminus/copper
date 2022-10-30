@@ -6,8 +6,36 @@ use crate::vars::{VarId, Vars};
 /// A propagator either fails a space, or returns updated variable domains.
 pub type ResultProp = Result<Vars, Failed>;
 
-/// New-type to improve clarity over unit type.
+/// Error type to signal a space has been failed by a propagator.
 pub struct Failed;
+
+/// Enforce a specific constraint by removing assignments that break it from variable domains.
+pub trait Propagate: std::fmt::Debug + CloneBoxed {
+    /// Prunes unfeasible assignments from domain.
+    ///
+    /// # Errors
+    ///
+    /// Failed spaces are signaled by returning a `Failed` error value.
+    fn propagate(&mut self, vars: Vars) -> ResultProp;
+}
+
+/// Place `Clone` requirement on trait implementers without violating object safety rules.
+pub trait CloneBoxed {
+    fn clone_boxed(&self) -> Box<dyn Propagate>;
+}
+
+impl<T: 'static + Propagate + Clone> CloneBoxed for T {
+    fn clone_boxed(&self) -> Box<dyn Propagate> {
+        Box::new(self.clone())
+    }
+}
+
+// ? Call to `clone` is forwarded to boxed version
+impl Clone for Box<dyn Propagate> {
+    fn clone(&self) -> Self {
+        self.clone_boxed()
+    }
+}
 
 /// Discriminate propagator type with enum to enable static dispatch and dependency injection.
 #[derive(Clone, Copy, Debug)]
@@ -18,6 +46,7 @@ pub enum PropId {
     Sum(usize),
     Eq(usize),
     Leq(usize),
+    Custom(usize),
 }
 
 /// Helper type to group propagators by type.
@@ -29,6 +58,7 @@ pub struct Props {
     pub sum: Vec<PropSum>,
     pub eq: Vec<PropEq>,
     pub leq: Vec<PropLeq>,
+    pub custom: Vec<Box<dyn Propagate>>,
 }
 
 /// Scaling factor constraint with a positive coefficient.

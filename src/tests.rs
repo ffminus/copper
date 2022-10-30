@@ -1,4 +1,4 @@
-use crate::Model;
+use crate::{Model, Propagate, ResultProp, VarId, Vars};
 
 #[test]
 fn plus() {
@@ -91,4 +91,38 @@ fn maximize() {
     let solution = m.maximize(x).unwrap();
 
     assert_eq!(solution[x], 5);
+}
+
+#[derive(Clone, Debug)]
+struct PropEqCustom {
+    x: VarId,
+    y: VarId,
+}
+
+impl Propagate for PropEqCustom {
+    fn propagate(&mut self, vars: Vars) -> ResultProp {
+        let (var_x, var_y) = (&vars[self.x], &vars[self.y]);
+
+        let min = std::cmp::max(var_x.min, var_y.min);
+        let max = std::cmp::min(var_x.max, var_y.max);
+
+        let vars = vars.set_min_and_max(self.x, min, max)?;
+        let vars = vars.set_min_and_max(self.y, min, max)?;
+
+        Ok(vars)
+    }
+}
+
+#[test]
+fn propagate() {
+    let mut m = Model::new();
+
+    let x = m.new_var(0, 5);
+    let y = m.cst(4);
+
+    m.propagator(PropEqCustom { x, y }, &[x, y]);
+
+    let solution = m.solve().unwrap();
+
+    assert_eq!(solution[x], 4);
 }

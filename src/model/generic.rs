@@ -1,3 +1,4 @@
+use crate::props::Propagate;
 use crate::solution::Solution;
 use crate::vars::VarId;
 
@@ -113,6 +114,11 @@ impl Model {
         let x = x.into_var_id(self);
         let y = y.into_var_id(self);
         self.leq_impl(x, y);
+    }
+
+    /// Declare custom propagator, with its associated dependencies.
+    pub fn propagator(&mut self, prop: impl Propagate + 'static, deps: &[VarId]) {
+        self.propagator_impl(Box::new(prop), deps);
     }
 
     /// Performs search and returns the assignment that minimizes the provided objective variable.

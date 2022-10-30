@@ -83,6 +83,11 @@ pub struct Vars {
 }
 
 impl Vars {
+    /// Try to assign a value to a variable.
+    ///
+    /// # Errors
+    ///
+    /// Function will fail if `value` falls outside of the domain's current bounds.
     pub fn set(mut self, id: VarId, value: i32) -> ResultProp {
         let var = &mut self.vars[*id];
 
@@ -97,6 +102,14 @@ impl Vars {
         Ok(self)
     }
 
+    /// Try to bound a variable's domain with a minimum and maximum value.
+    ///
+    /// # Errors
+    ///
+    /// Function will fail if either:
+    ///     - `min` is greater than `max`
+    ///     - `min` is greater than the domain's current maximum
+    ///     - `max` is smaller than the domain's current minimum
     pub fn set_min_and_max(self, id: VarId, min: i32, max: i32) -> ResultProp {
         ensure_min_leq_max(min, max)?;
 
@@ -106,6 +119,11 @@ impl Vars {
         Ok(vars)
     }
 
+    /// Try to bound a variable's domain with a minimum value.
+    ///
+    /// # Errors
+    ///
+    /// Function will fail if `min` is greater than the domain's current maximum.
     pub fn set_min(mut self, id: VarId, min: i32) -> ResultProp {
         let var = &mut self.vars[*id];
 
@@ -119,6 +137,11 @@ impl Vars {
         Ok(self)
     }
 
+    /// Try to bound a variable's domain with a maximum value.
+    ///
+    /// # Errors
+    ///
+    /// Function will fail if `max` is smaller than the domain's current minimum.
     pub fn set_max(mut self, id: VarId, max: i32) -> ResultProp {
         let var = &mut self.vars[*id];
 
