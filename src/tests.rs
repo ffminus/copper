@@ -1,6 +1,21 @@
 use crate::Model;
 
 #[test]
+fn plus() {
+    let mut m = Model::default();
+
+    let x = m.new_var(0, 5);
+    let y = m.new_var(3, 6);
+
+    let plus = m.plus(x, y);
+
+    let solution = m.minimize(plus).unwrap();
+
+    assert_eq!(solution[x], 0);
+    assert_eq!(solution[y], 3);
+}
+
+#[test]
 fn eq() {
     let mut m = Model::default();
 

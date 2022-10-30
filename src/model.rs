@@ -83,6 +83,27 @@ impl Model {
         s
     }
 
+    /// Creates a new expression that represents `x` + `y`.
+    #[must_use]
+    pub fn plus(&mut self, x: impl IntoVarId, y: impl IntoVarId) -> VarId {
+        let (x, y) = (x.into_var_id(self), y.into_var_id(self));
+
+        let var_x = &self.vars[*x];
+        let var_y = &self.vars[*y];
+
+        let plus = self.new_var(var_x.min + var_y.min, var_x.max + var_y.max);
+
+        let id = PropId::Plus(self.props.plus.len());
+
+        self.props.plus.push(props::PropPlus);
+
+        self.deps.props.plus.push((plus, (x, y)));
+        self.deps.vars[*x].push(id);
+        self.deps.vars[*y].push(id);
+
+        plus
+    }
+
     /// Enforces constraint `x` == `y`.
     pub fn eq(&mut self, x: impl IntoVarId, y: impl IntoVarId) {
         let (x, y) = (x.into_var_id(self), y.into_var_id(self));

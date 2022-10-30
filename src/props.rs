@@ -17,6 +17,7 @@ pub trait Propagate {
 pub enum PropId {
     ScalePos(usize),
     ScaleNeg(usize),
+    Plus(usize),
     Eq(usize),
 }
 
@@ -25,6 +26,7 @@ pub enum PropId {
 pub struct Props {
     pub scale_pos: Vec<PropScalePos>,
     pub scale_neg: Vec<PropScaleNeg>,
+    pub plus: Vec<PropPlus>,
     pub eq: Vec<PropEq>,
 }
 
@@ -77,6 +79,40 @@ impl Propagate for PropScaleNeg {
 
             Some(vars)
         }
+    }
+}
+
+/// Add two variables together.
+#[derive(Clone, Debug)]
+pub struct PropPlus;
+
+impl Propagate for PropPlus {
+    type Deps = (VarId, (VarId, VarId));
+
+    fn propagate(&mut self, deps: &Self::Deps, mut vars: Vars) -> Option<Vars> {
+        let (p, (x, y)) = *deps;
+
+        let (var_x, var_y, var_p) = (&vars[x], &vars[y], &vars[p]);
+
+        let min = max_of(var_x.min + var_y.min, var_p.min);
+        let max = min_of(var_x.max + var_y.max, var_p.max);
+
+        if min > max {
+            return None;
+        }
+
+        let (x_min_new, x_max_new) = (min - var_y.max, max - var_y.min);
+        let (y_min_new, y_max_new) = (min - var_x.max, max - var_x.min);
+
+        if x_min_new > x_max_new || y_min_new > y_max_new {
+            return None;
+        }
+
+        vars.set_min_and_max(x, x_min_new, x_max_new);
+        vars.set_min_and_max(y, y_min_new, y_max_new);
+        vars.set_min_and_max(p, min, max);
+
+        Some(vars)
     }
 }
 
