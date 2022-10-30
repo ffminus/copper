@@ -3,7 +3,7 @@ pub mod branch;
 
 use std::collections::VecDeque;
 
-use crate::props::{self, PropId, Propagate, Props};
+use crate::props::{self, Failed, PropId, Propagate, Props};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId, Vars};
 
@@ -33,14 +33,13 @@ impl<'s> Searcher<'s> {
         };
 
         // Initial propagation runs all declared propagators
-        match self.propagate_with_all_props(props, space) {
-            Propagated::Failed => None,
+        match self.propagate_with_all_props(props, space).ok()? {
             Propagated::Fixed(space) => B::search(space, self),
             Propagated::Done(solution) => Some(solution),
         }
     }
 
-    fn propagate_with_all_props(&self, props: &Props, space: Space) -> Propagated {
+    fn propagate_with_all_props(&self, props: &Props, space: Space) -> ResultProps {
         let agenda = (0..props.scale_pos.len())
             .map(PropId::ScalePos)
             .chain((0..props.scale_neg.len()).map(PropId::ScaleNeg))
@@ -53,7 +52,7 @@ impl<'s> Searcher<'s> {
         self.propagate(space, agenda)
     }
 
-    fn branch(&self, branch: &Branch, mut space: Space) -> Propagated {
+    fn branch(&self, branch: &Branch, mut space: Space) -> ResultProps {
         // Apply selected branch to search space
         match branch.choice {
             Choice::Set(val) => space.vars.set_unchecked(branch.pivot, val),
@@ -66,11 +65,11 @@ impl<'s> Searcher<'s> {
         self.propagate(space, agenda)
     }
 
-    fn propagate(&self, mut space: Space, mut agenda: VecDeque<PropId>) -> Propagated {
+    fn propagate(&self, mut space: Space, mut agenda: VecDeque<PropId>) -> ResultProps {
         // Apply all active propagators, until they are all at a fixed point, or the space fails
         while let Some(id) = agenda.pop_front() {
             // Branch on id type, to avoid dynamic dispatch for propagator and its dependencies
-            let vars_opt = match id {
+            let mut vars = match id {
                 PropId::ScalePos(i) => {
                     space.props.scale_pos[i].propagate(&self.deps.props.scale_pos[i], space.vars)
                 }
@@ -83,27 +82,25 @@ impl<'s> Searcher<'s> {
                 PropId::Sum(i) => space.props.sum[i].propagate(&self.deps.props.sum[i], space.vars),
                 PropId::Eq(i) => space.props.eq[i].propagate(&self.deps.props.eq[i], space.vars),
                 PropId::Leq(i) => space.props.leq[i].propagate(&self.deps.props.leq[i], space.vars),
-            };
+            }?;
 
             // Mutated variable domains returned if space is not failed by propagator
-            if let Some(mut vars) = vars_opt {
-                self.schedule_props_from_domain_changes(&mut vars, &mut agenda);
+            self.schedule_props_from_domain_changes(&mut vars, &mut agenda);
 
-                // Propagator mutated the space's variable domains, pruning unfeasible assignments
-                space.vars = vars;
+            // Propagator mutated the space's variable domains, pruning unfeasible assignments
+            space.vars = vars;
+        }
+
+        let propagated =
+            if let Some(assignment) = space.vars.get_assignment_if_all_variables_are_set() {
+                // All variable domains are reduced to singletons, search is done for this space
+                Propagated::Done(Solution::new(assignment))
             } else {
-                // Search space is failed if it contains no feasible assignment
-                return Propagated::Failed;
-            }
-        }
+                // Some variable domains are not singletons, subsequent branching is required
+                Propagated::Fixed(space)
+            };
 
-        // All variable domains are reduced to singletons, search is done for this space
-        if let Some(assignment) = space.vars.get_assignment_if_all_variables_are_set() {
-            Propagated::Done(Solution::new(assignment))
-        } else {
-            // Some variable domains are not singletons, subsequent branching is required
-            Propagated::Fixed(space)
-        }
+        Ok(propagated)
     }
 
     /// Schedule all dependent propagators of changed variables
@@ -124,11 +121,11 @@ pub struct Space {
 }
 
 /// Result of applying all propagators on agenda to variable domains.
+type ResultProps = Result<Propagated, Failed>;
+
+/// No propagator failed the space, either search is done,
 #[derive(Debug)]
 enum Propagated {
-    /// No feasible solution exist in this search space.
-    Failed,
-
     /// All propagators are at a fixed point, and domain is not reduced to a single assignment.
     Fixed(Space),
 
