@@ -1,4 +1,4 @@
-use crate::{enumerate, Model, Propagate, ResultProp, VarId, Vars};
+use crate::{enumerate, pick, Brancher, Model, Propagate, ResultProp, VarId, Vars};
 
 #[test]
 fn plus() {
@@ -134,7 +134,7 @@ fn max_to_min() {
     let x = m.new_var(0, 5);
 
     let solution = m
-        .with_enumerator::<enumerate::SetMaxToMin>()
+        .with_brancher::<Brancher<pick::FirstUnset, enumerate::SetMaxToMin>>()
         .solve()
         .unwrap();
 

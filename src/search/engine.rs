@@ -2,28 +2,26 @@ use std::rc::Rc;
 
 use crate::solution::Solution;
 
-use super::branch::enumerate::Enumerate;
-use super::branch::pick::Pick;
-use super::branch::Choice;
-use super::{Propagated, Searcher, Space};
+use super::branch::Branch;
+use super::{Choice, Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.
-pub trait Engine<P: Pick, E: Enumerate> {
+pub trait Engine<B: Branch> {
     /// Initialize engine without requiring a `Default` bound on its generic parameter.
     fn new_engine() -> Self;
 
     /// Perform search, keeping track of spaces to explore on branching.
-    fn search(self, space: Space<P, E>, searcher: &Searcher) -> Option<Solution>;
+    fn search(self, space: Space<B>, searcher: &Searcher) -> Option<Solution>;
 }
 
 /// Single-threaded LIFO list of nodes to explore.
-pub struct Stack<P: Pick, E: Enumerate> {
+pub struct Stack<B: Branch> {
     solution: Option<Solution>,
 
-    tasks: Vec<(Choice, Rc<Space<P, E>>)>,
+    tasks: Vec<(Choice, Rc<Space<B>>)>,
 }
 
-impl<P: Pick, E: Enumerate> Engine<P, E> for Stack<P, E> {
+impl<B: Branch> Engine<B> for Stack<B> {
     fn new_engine() -> Self {
         Self {
             solution: None,
@@ -31,7 +29,7 @@ impl<P: Pick, E: Enumerate> Engine<P, E> for Stack<P, E> {
         }
     }
 
-    fn search(mut self, space: Space<P, E>, searcher: &Searcher) -> Option<Solution> {
+    fn search(mut self, space: Space<B>, searcher: &Searcher) -> Option<Solution> {
         self.push_tasks(space);
 
         while let Some((choice, space)) = self.tasks.pop() {
@@ -70,19 +68,16 @@ impl<P: Pick, E: Enumerate> Engine<P, E> for Stack<P, E> {
     }
 }
 
-impl<P: Pick, E: Enumerate> Stack<P, E> {
-    fn push_tasks(&mut self, mut space: Space<P, E>) {
+impl<B: Branch> Stack<B> {
+    fn push_tasks(&mut self, mut space: Space<B>) {
         // Select pivot variable to branch on
-        if let Some(pivot) = space.picker.pick(&space.vars) {
-            let mutations = space.enumerator.branch_on(&space.vars[pivot]);
-
+        if let Some(choices) = space.brancher.branch(&space.vars) {
             // Store a single copy of search space, drops when all choices have been explored
             let space = Rc::new(space);
 
             // Queue branches to be explored
-            for mutation in mutations {
-                self.tasks
-                    .push((Choice { pivot, mutation }, Rc::clone(&space)));
+            for choice in choices {
+                self.tasks.push((choice, Rc::clone(&space)));
             }
         }
     }

@@ -10,10 +10,10 @@ pub trait Enumerate: Clone {
     /// Iterator over mutations to apply to generate branches to explore.
     type Iter: Iterator<Item = Mutation>;
 
-    /// Initialize enumerator on search start.
+    /// Initialize brancher on search start.
     fn new_enumerator() -> Self;
 
-    /// Initialize iterator from pivot's current domain.
+    /// Initialize brancher from pivot's current domain.
     fn branch_on(&mut self, pivot: &Var) -> Self::Iter;
 }
 

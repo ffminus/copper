@@ -1,4 +1,4 @@
-/// Domain branching strategies.
+/// Branching trait and strategies.
 pub mod branch;
 
 pub mod engine;
@@ -9,9 +9,7 @@ use crate::props::{self, Failed, PropId, Props};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId, Vars};
 
-use self::branch::enumerate::Enumerate;
-use self::branch::pick::Pick;
-use self::branch::{Choice, Mutation};
+use self::branch::{Branch, Choice, Mutation};
 use self::engine::Engine;
 
 /// Store immutable model variables referenced during search.
@@ -30,22 +28,15 @@ impl<'s> Searcher<'s> {
         }
     }
 
-    pub fn search<P, T, E>(&self, vars: &[Var], props: &Props) -> Option<Solution>
-    where
-        P: Pick,
-        T: Enumerate,
-        E: Engine<P, T>,
-    {
+    pub fn search<B: Branch, E: Engine<B>>(&self, vars: &[Var], props: &Props) -> Option<Solution> {
         let vars = Vars::new(vars);
 
-        let picker = P::from_vars(&vars);
-        let enumerator = T::new_enumerator();
+        let brancher = B::from_vars(&vars);
 
         let space = Space {
             vars,
             props: props.clone(),
-            picker,
-            enumerator,
+            brancher,
         };
 
         // Initial propagation runs all declared propagators
@@ -55,10 +46,9 @@ impl<'s> Searcher<'s> {
         }
     }
 
-    fn propagate_with_all_props<P, E>(&self, props: &Props, space: Space<P, E>) -> ResultProps<P, E>
+    fn propagate_with_all_props<B>(&self, props: &Props, space: Space<B>) -> ResultProps<B>
     where
-        P: Pick,
-        E: Enumerate,
+        B: Branch,
     {
         let agenda = (0..props.scale_pos.len())
             .map(PropId::ScalePos)
@@ -72,12 +62,12 @@ impl<'s> Searcher<'s> {
         self.propagate(space, agenda)
     }
 
-    fn mutate_then_propagate<P: Pick, E: Enumerate>(
+    fn mutate_then_propagate<B: Branch>(
         &self,
         choice: &Choice,
         obj_opt: Option<i32>,
-        mut space: Space<P, E>,
-    ) -> ResultProps<P, E> {
+        mut space: Space<B>,
+    ) -> ResultProps<B> {
         // Apply selected branch to search space
         space.vars = match choice.mutation {
             Mutation::Set(val) => space.vars.try_set(choice.pivot, val),
@@ -97,11 +87,7 @@ impl<'s> Searcher<'s> {
         self.propagate(space, agenda)
     }
 
-    fn propagate<P, E>(&self, mut space: Space<P, E>, mut a: VecDeque<PropId>) -> ResultProps<P, E>
-    where
-        P: Pick,
-        E: Enumerate,
-    {
+    fn propagate<B: Branch>(&self, mut space: Space<B>, mut a: VecDeque<PropId>) -> ResultProps<B> {
         // Apply all active propagators, until they are all at a fixed point, or the space fails
         while let Some(id) = a.pop_front() {
             // Branch on id type, to avoid dynamic dispatch for propagator and its dependencies
@@ -153,22 +139,21 @@ impl<'s> Searcher<'s> {
 
 /// State required for exploring a search tree.
 #[derive(Clone, Debug)]
-pub struct Space<P: Pick, E: Enumerate> {
+pub struct Space<B: Branch> {
     vars: Vars,
     props: Props,
-    picker: P,
-    enumerator: E,
+    brancher: B,
 }
 
 /// Result of applying all propagators on agenda to variable domains.
-type ResultProps<P, E> = Result<Propagated<P, E>, Failed>;
+type ResultProps<B> = Result<Propagated<B>, Failed>;
 
 /// No propagator failed the space, either search is done,
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
-enum Propagated<P: Pick, E: Enumerate> {
+enum Propagated<B: Branch> {
     /// All propagators are at a fixed point, and domain is not reduced to a single assignment.
-    Fixed(Space<P, E>),
+    Fixed(Space<B>),
 
     /// All propagators are at a fixed point, and domain is reduced to a single assignment.
     Done(Solution),

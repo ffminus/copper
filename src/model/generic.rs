@@ -1,6 +1,5 @@
 use crate::props::Propagate;
-use crate::search::branch::enumerate::{Enumerate, SetMinToMax as EnumeratorDefault};
-use crate::search::branch::pick::{FirstUnset as PickerDefault, Pick};
+use crate::search::branch::Branch;
 use crate::solution::Solution;
 use crate::vars::VarId;
 
@@ -123,21 +122,9 @@ impl Model {
         self.propagator_impl(Box::new(prop), deps);
     }
 
-    /// Set variable selection strategy for search.
-    #[must_use]
-    pub const fn with_picker<P: Pick>(self) -> Strategy<P, EnumeratorDefault> {
-        Strategy::new(self)
-    }
-
     /// Set domain branching strategy for search.
     #[must_use]
-    pub const fn with_enumerator<E: Enumerate>(self) -> Strategy<PickerDefault, E> {
-        Strategy::new(self)
-    }
-
-    /// Set both variable selection and branching strategy for search.
-    #[must_use]
-    pub const fn with_picker_and_enumerator<P: Pick, E: Enumerate>(self) -> Strategy<P, E> {
+    pub const fn with_brancher<B: Branch>(self) -> Strategy<B> {
         Strategy::new(self)
     }
 
@@ -160,7 +147,7 @@ impl Model {
     }
 }
 
-impl<P: Pick, E: Enumerate> Strategy<P, E> {
+impl<B: Branch> Strategy<B> {
     /// Performs search and returns the assignment that minimizes the provided objective variable.
     #[must_use]
     pub fn minimize(mut self, obj: impl IntoVarId) -> Option<Solution> {
