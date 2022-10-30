@@ -33,7 +33,37 @@ impl<'s> Searcher<'s> {
     }
 
     fn propagate(&self, mut space: Space, mut agenda: VecDeque<PropId>) -> Propagated {
-        todo!()
+        // Apply all active propagators, until they are all at a fixed point, or the space fails
+        while let Some(id) = agenda.pop_front() {
+            // Branch on id type, to avoid dynamic dispatch for propagator and its dependencies
+            let vars_opt = match id {
+                PropId::Eq(i) => space.props.eq[i].propagate(&self.deps.props.eq[i], space.vars),
+            };
+
+            // Mutated variable domains returned if space is not failed by propagator
+            if let Some(mut vars) = vars_opt {
+                // Schedule all dependent propagators of changed variables
+                for var_id in vars.drain_events() {
+                    for prop_id in &self.deps.vars[*var_id] {
+                        agenda.push_back(*prop_id);
+                    }
+                }
+
+                // Propagator mutated the space's variable domains, pruning unfeasible assignments
+                space.vars = vars;
+            } else {
+                // Search space is failed if it contains no feasible assignment
+                return Propagated::Failed;
+            }
+        }
+
+        // All variable domains are reduced to singletons, search is done for this space
+        if let Some(assignment) = space.vars.get_assignment_if_all_variables_are_set() {
+            Propagated::Done(Solution::new(assignment))
+        } else {
+            // Some variable domains are not singletons, subsequent branching is required
+            Propagated::Fixed(space)
+        }
     }
 }
 

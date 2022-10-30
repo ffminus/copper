@@ -26,6 +26,13 @@ pub struct Var {
     pub max: i32,
 }
 
+impl Var {
+    /// Variable domain is reduced to a singleton.
+    pub const fn is_set(&self) -> bool {
+        self.min == self.max
+    }
+}
+
 /// Decision variable domains, encapsulated to track changes used to schedule propagators.
 #[derive(Clone, Debug)]
 pub struct Vars {
@@ -63,6 +70,20 @@ impl Vars {
             var.max = max;
             self.events.insert(id);
         }
+    }
+
+    /// Extract assignments if all domains are singletons.
+    pub fn get_assignment_if_all_variables_are_set(&self) -> Option<Vec<i32>> {
+        if self.vars.iter().all(Var::is_set) {
+            Some(self.vars.iter().map(|var| var.min).collect())
+        } else {
+            None
+        }
+    }
+
+    /// Iterate over change events triggered by propagation, while preserving allocated capacity.
+    pub fn drain_events(&mut self) -> impl Iterator<Item = VarId> + '_ {
+        self.events.drain()
     }
 }
 
