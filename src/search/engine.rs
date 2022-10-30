@@ -62,16 +62,16 @@ impl Engine for Stack {
 
 impl Stack {
     fn push_tasks<P: Pick, B: Branch>(&mut self, space: Space) {
-        // Store a single copy of search space, drops when all related choices have been explored
-        let space = Rc::new(space);
-
         // Select pivot variable to branch on
-        let pivot = P::pick(&space.vars);
+        if let Some(pivot) = P::pick(&space.vars) {
+            // Store a single copy of search space, drops when all choices have been explored
+            let space = Rc::new(space);
 
-        // Queue branches to be explored
-        for mutation in B::from_var(&space.vars[pivot]) {
-            self.tasks
-                .push((Choice { pivot, mutation }, Rc::clone(&space)));
+            // Queue branches to be explored
+            for mutation in B::from_var(&space.vars[pivot]) {
+                self.tasks
+                    .push((Choice { pivot, mutation }, Rc::clone(&space)));
+            }
         }
     }
 }
