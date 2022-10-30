@@ -8,6 +8,12 @@ use crate::vars::Var;
 pub enum Mutation {
     /// Assign a specific value to the variable.
     Set(i32),
+
+    /// Set a new minimum value to the variable's domain.
+    Min(i32),
+
+    /// Set a new maximum value to the variable's domain.
+    Max(i32),
 }
 
 /// Enumerate mutations on pivot variable when branching.

@@ -83,6 +83,8 @@ impl<'s> Searcher<'s> {
         // Apply selected branch to search space
         space.vars = match choice.mutation {
             Mutation::Set(val) => space.vars.try_set(choice.pivot, val),
+            Mutation::Min(min) => space.vars.try_set_min(choice.pivot, min),
+            Mutation::Max(max) => space.vars.try_set_max(choice.pivot, max),
         }?;
 
         // Prune domains that cannot improve on the current best found objective value
