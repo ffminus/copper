@@ -1,5 +1,8 @@
 # Exact version of dependencies
 /Cargo.lock
 
+# Built NodeJS package
+/pkg
+
 # Build artifacts
 /target
