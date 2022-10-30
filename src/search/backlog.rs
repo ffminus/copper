@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::solution::Solution;
 
-use super::branch::{branch, Branch};
+use super::branch::{branch, Choice};
 use super::{Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.
@@ -16,16 +16,16 @@ pub trait Backlog {
 pub struct Stack {
     solution: Option<Solution>,
 
-    tasks: Vec<(Branch, Rc<Space>)>,
+    tasks: Vec<(Choice, Rc<Space>)>,
 }
 
 impl Backlog for Stack {
     fn search(space: Space, searcher: &Searcher) -> Option<Solution> {
         let mut backlog = Self::default();
 
-        backlog.push_branches(space);
+        backlog.push_tasks(space);
 
-        while let Some((branch, space)) = backlog.tasks.pop() {
+        while let Some((choice, space)) = backlog.tasks.pop() {
             let space = (*space).clone();
 
             // Provide current best objective value to allow for additional pruning
@@ -35,9 +35,9 @@ impl Backlog for Stack {
                 .map(|solution| solution[searcher.obj]);
 
             // No additional searching required for failed spaces
-            if let Ok(propagated) = searcher.branch(&branch, obj_opt, space) {
+            if let Ok(propagated) = searcher.branch(&choice, obj_opt, space) {
                 match propagated {
-                    Propagated::Fixed(space) => backlog.push_branches(space),
+                    Propagated::Fixed(space) => backlog.push_tasks(space),
                     Propagated::Done(candidate) => {
                         // End search early if user is only looking for feasibility
                         if searcher.stop_on_feasibility {
@@ -62,13 +62,13 @@ impl Backlog for Stack {
 }
 
 impl Stack {
-    fn push_branches(&mut self, space: Space) {
+    fn push_tasks(&mut self, space: Space) {
         // Store a single copy of search space, drops when all related choices have been explored
         let space = Rc::new(space);
 
         // Queue branches to be explored
-        for branch in branch(&space.vars) {
-            self.tasks.push((branch, Rc::clone(&space)));
+        for choice in branch(&space.vars) {
+            self.tasks.push((choice, Rc::clone(&space)));
         }
     }
 }

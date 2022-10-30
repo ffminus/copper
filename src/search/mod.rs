@@ -8,7 +8,7 @@ use crate::solution::Solution;
 use crate::vars::{Var, VarId, Vars};
 
 use self::backlog::Backlog;
-use self::branch::{Branch, Choice};
+use self::branch::{Choice, Mutation};
 
 /// Store immutable model variables referenced during search.
 pub struct Searcher<'s> {
@@ -52,10 +52,10 @@ impl<'s> Searcher<'s> {
         self.propagate(space, agenda)
     }
 
-    fn branch(&self, branch: &Branch, obj_opt: Option<i32>, mut space: Space) -> ResultProps {
+    fn branch(&self, choice: &Choice, obj_opt: Option<i32>, mut space: Space) -> ResultProps {
         // Apply selected branch to search space
-        space.vars = match branch.choice {
-            Choice::Set(val) => space.vars.try_set(branch.pivot, val)?,
+        space.vars = match choice.mutation {
+            Mutation::Set(val) => space.vars.try_set(choice.pivot, val)?,
         };
 
         // Prune domains that cannot improve on the current best found objective value
