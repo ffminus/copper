@@ -80,7 +80,7 @@ pub use crate::solution::Solution;
 mod not_wasm {
     pub use crate::model::generic::IntoVarId;
     pub use crate::props::{Failed, Propagate, ResultProp};
-    pub use crate::search::branch::{self, pick};
+    pub use crate::search::branch::{enumerate, pick};
     pub use crate::vars::{VarId, Vars};
 }
 #[cfg(not(feature = "wasm"))]

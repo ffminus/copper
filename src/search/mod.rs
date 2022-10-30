@@ -9,8 +9,9 @@ use crate::props::{self, Failed, PropId, Props};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId, Vars};
 
+use self::branch::enumerate::Enumerate;
 use self::branch::pick::Pick;
-use self::branch::{Enumerate, Mutation};
+use self::branch::Mutation;
 use self::engine::Engine;
 
 /// Store immutable model variables referenced during search.

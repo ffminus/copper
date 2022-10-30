@@ -10,8 +10,8 @@ use std::cmp::Ordering;
 use std::marker::PhantomData;
 
 use crate::props::{self, PropId, Propagate, Props};
+use crate::search::branch::enumerate::{Enumerate, SetMinToMax as EnumeratorDefault};
 use crate::search::branch::pick::{FirstUnset as PickerDefault, Pick};
-use crate::search::branch::{Enumerate, SetMinToMax as EnumeratorDefault};
 use crate::search::{engine, Deps, Searcher};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId};

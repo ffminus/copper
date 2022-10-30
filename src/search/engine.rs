@@ -2,8 +2,8 @@ use std::rc::Rc;
 
 use crate::solution::Solution;
 
+use super::branch::enumerate::Enumerate;
 use super::branch::pick::Pick;
-use super::branch::Enumerate;
 use super::{Choice, Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.
