@@ -42,12 +42,7 @@ impl<'s> Searcher<'s> {
 
             // Mutated variable domains returned if space is not failed by propagator
             if let Some(mut vars) = vars_opt {
-                // Schedule all dependent propagators of changed variables
-                for var_id in vars.drain_events() {
-                    for prop_id in &self.deps.vars[*var_id] {
-                        agenda.push_back(*prop_id);
-                    }
-                }
+                self.schedule_props_from_domain_changes(&mut vars, &mut agenda);
 
                 // Propagator mutated the space's variable domains, pruning unfeasible assignments
                 space.vars = vars;
@@ -63,6 +58,15 @@ impl<'s> Searcher<'s> {
         } else {
             // Some variable domains are not singletons, subsequent branching is required
             Propagated::Fixed(space)
+        }
+    }
+
+    /// Schedule all dependent propagators of changed variables
+    fn schedule_props_from_domain_changes(&self, vars: &mut Vars, agenda: &mut VecDeque<PropId>) {
+        for id in vars.drain_events() {
+            for propagator_id in &self.deps.vars[*id] {
+                agenda.push_back(*propagator_id);
+            }
         }
     }
 }
