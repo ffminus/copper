@@ -1,10 +1,10 @@
 use crate::props::Propagate;
-use crate::search::branch::SetMinToMax;
-use crate::search::pick::FirstUnset;
+use crate::search::branch::{Branch, SetMinToMax as BrancherDefault};
+use crate::search::pick::{FirstUnset as PickerDefault, Pick};
 use crate::solution::Solution;
 use crate::vars::VarId;
 
-use super::Model;
+use super::{Model, Strategy, StrategyDefault};
 
 /// Convenience trait for values that can be converted to a variable id.
 pub trait IntoVarId {
@@ -123,23 +123,55 @@ impl Model {
         self.propagator_impl(Box::new(prop), deps);
     }
 
+    /// Set variable selection strategy for search.
+    #[must_use]
+    pub const fn with_picker<P: Pick>(self) -> Strategy<P, BrancherDefault> {
+        Strategy::new(self)
+    }
+
+    /// Set domain branching strategy for search.
+    #[must_use]
+    pub const fn with_brancher<B: Branch>(self) -> Strategy<PickerDefault, B> {
+        Strategy::new(self)
+    }
+
+    /// Set both variable selection and branching strategy for search.
+    #[must_use]
+    pub const fn with_picker_and_brancher<P: Pick, B: Branch>(self) -> Strategy<P, B> {
+        Strategy::new(self)
+    }
+
     /// Performs search and returns the first assignment found that satisfies all constraints.
     #[must_use]
-    pub fn solve(&mut self) -> Option<Solution> {
-        self.solve_impl::<FirstUnset, SetMinToMax>()
+    pub fn solve(self) -> Option<Solution> {
+        StrategyDefault::new(self).solve()
     }
 
     /// Performs search and returns the assignment that minimizes the provided objective variable.
     #[must_use]
+    pub fn minimize(self, obj: impl IntoVarId) -> Option<Solution> {
+        StrategyDefault::new(self).minimize(obj)
+    }
+
+    /// Performs search and returns the assignment that maximizes the provided objective variable.
+    #[must_use]
+    pub fn maximize(self, obj: impl IntoVarId) -> Option<Solution> {
+        StrategyDefault::new(self).maximize(obj)
+    }
+}
+
+impl<P: Pick, B: Branch> Strategy<P, B> {
+    /// Performs search and returns the assignment that minimizes the provided objective variable.
+    #[must_use]
     pub fn minimize(mut self, obj: impl IntoVarId) -> Option<Solution> {
-        let obj = obj.into_var_id(&mut self);
-        self.minimize_impl::<FirstUnset, SetMinToMax>(obj)
+        let obj = obj.into_var_id(&mut self.model);
+        self.minimize_impl(obj)
     }
 
     /// Performs search and returns the assignment that maximizes the provided objective variable.
     #[must_use]
     pub fn maximize(mut self, obj: impl IntoVarId) -> Option<Solution> {
-        let obj = obj.into_var_id(&mut self);
-        self.maximize_impl::<FirstUnset, SetMinToMax>(obj)
+        let obj = obj.into_var_id(&mut self.model);
+        self.maximize_impl(obj)
     }
 }

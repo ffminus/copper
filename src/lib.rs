@@ -72,7 +72,7 @@ mod vars;
 #[cfg(test)]
 mod tests;
 
-pub use crate::model::Model;
+pub use crate::model::{Model, Strategy};
 pub use crate::solution::Solution;
 
 #[cfg(not(feature = "wasm"))]

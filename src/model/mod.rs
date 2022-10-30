@@ -7,10 +7,11 @@ pub mod generic;
 mod wasm;
 
 use std::cmp::Ordering;
+use std::marker::PhantomData;
 
 use crate::props::{self, PropId, Propagate, Props};
-use crate::search::branch::Branch;
-use crate::search::pick::Pick;
+use crate::search::branch::{Branch, SetMinToMax as BrancherDefault};
+use crate::search::pick::{FirstUnset as PickerDefault, Pick};
 use crate::search::{backlog, Deps, Searcher};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId};
@@ -214,5 +215,40 @@ impl Model {
     fn search<P: Pick, B: Branch>(&self, ob: VarId, stop_on_feasibility: bool) -> Option<Solution> {
         Searcher::new(&self.deps, ob, stop_on_feasibility)
             .search::<backlog::Stack, P, B>(&self.vars, &self.props)
+    }
+}
+
+/// Model and branching strategy to be applied during search.
+pub struct Strategy<P: Pick, B: Branch> {
+    model: Model,
+
+    _p: PhantomData<P>,
+    _b: PhantomData<B>,
+}
+
+/// Default branching strategy used if user does not specify one.
+pub type StrategyDefault = Strategy<PickerDefault, BrancherDefault>;
+
+impl<P: Pick, B: Branch> Strategy<P, B> {
+    const fn new(model: Model) -> Self {
+        Self {
+            model,
+            _p: PhantomData,
+            _b: PhantomData,
+        }
+    }
+
+    /// Performs search and returns the first assignment found that satisfies all constraints.
+    #[must_use]
+    pub fn solve(&mut self) -> Option<Solution> {
+        self.model.solve_impl::<P, B>()
+    }
+
+    fn minimize_impl(self, obj: VarId) -> Option<Solution> {
+        self.model.minimize_impl::<P, B>(obj)
+    }
+
+    fn maximize_impl(self, obj: VarId) -> Option<Solution> {
+        self.model.maximize_impl::<P, B>(obj)
     }
 }
