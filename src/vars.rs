@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::ops::{Deref, Index};
+use std::ops::{Deref, Index, Range};
 
 use crate::props::{Failed, ResultProp};
 
@@ -19,6 +19,18 @@ impl Deref for VarId {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+/// Iterate over variable ids in model.
+#[derive(Clone)]
+pub struct VarIds(Range<usize>);
+
+impl Iterator for VarIds {
+    type Item = VarId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(VarId::new)
     }
 }
 
@@ -155,9 +167,10 @@ impl Vars {
         Ok(self)
     }
 
-    /// Iterate over variables, with their corresponding ids.
-    pub fn iter(&self) -> impl Iterator<Item = (VarId, &Var)> + '_ {
-        self.vars.iter().enumerate().map(|(i, var)| (VarId(i), var))
+    /// Iterate over variable ids.
+    #[must_use]
+    pub fn get_var_ids(&self) -> VarIds {
+        VarIds(0..self.vars.len())
     }
 
     pub(crate) fn new(vars: &[Var]) -> Self {

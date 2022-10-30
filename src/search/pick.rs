@@ -11,8 +11,6 @@ pub struct FirstUnset;
 
 impl Pick for FirstUnset {
     fn pick(vars: &Vars) -> Option<VarId> {
-        vars.iter()
-            .find(|(_id, var)| !var.is_set())
-            .map(|(id, _var)| id)
+        vars.get_var_ids().find(|id| !vars[*id].is_set())
     }
 }
