@@ -21,6 +21,7 @@ mod model;
 mod props;
 mod search;
 mod solution;
+mod utils;
 mod vars;
 
 #[cfg(test)]
