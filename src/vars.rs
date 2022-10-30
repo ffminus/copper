@@ -3,6 +3,7 @@ use std::ops::{Deref, Index};
 
 /// New-type wrapper to identify decision variables and expressions.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 pub struct VarId(usize);
 
 impl VarId {
@@ -16,6 +17,32 @@ impl Deref for VarId {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+#[cfg(feature = "wasm")]
+pub mod wasm {
+    /// Identify decision variables and expressions with their ids
+    pub type VarId = usize;
+
+    impl From<super::VarId> for VarId {
+        fn from(x: super::VarId) -> Self {
+            *x
+        }
+    }
+
+    impl From<VarId> for super::VarId {
+        fn from(x: VarId) -> Self {
+            Self::new(x)
+        }
+    }
+
+    pub fn into_boxed_slice_of_ids(xs: Vec<super::VarId>) -> Box<[VarId]> {
+        xs.into_iter().map(Into::into).collect()
+    }
+
+    pub fn from_slice_of_ids(xs: &[VarId]) -> Vec<super::VarId> {
+        xs.iter().copied().map(Into::into).collect()
     }
 }
 

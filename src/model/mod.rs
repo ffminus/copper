@@ -1,5 +1,10 @@
 // ? Generic trampoline methods that cannot be exposed to WASM
+#[cfg(not(feature = "wasm"))]
 pub mod generic;
+
+// ? Wrapper methods that can be exposed to WASM
+#[cfg(feature = "wasm")]
+mod wasm;
 
 use std::cmp::Ordering;
 
@@ -8,8 +13,12 @@ use crate::search::{backlog, Deps, Searcher};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId};
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// Problem definition, with decision variables and constraints.
 #[derive(Debug, Default)]
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub struct Model {
     vars: Vec<Var>,
     props: Props,
@@ -17,8 +26,10 @@ pub struct Model {
 }
 
 // ? Methods that are exported as-is to both Rust and WASM interfaces
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 impl Model {
     /// Creates a new model, used to declare decision variables and constraints.
+    #[cfg_attr(feature = "wasm", wasm_bindgen(constructor))]
     #[must_use]
     pub fn new() -> Self {
         Self::default()

@@ -10,4 +10,15 @@ readme      = "README.md"
 keywords    = ["solver", "constraint"]
 categories  = ["mathematics", "science"]
 
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+
+[features]
+wasm = ["dep:wasm-bindgen"]
+
+
 [dependencies]
+# Bindings generation for WASM
+wasm-bindgen = { version = "0.2.82", optional = true }

@@ -75,5 +75,7 @@ mod tests;
 pub use crate::model::Model;
 pub use crate::solution::Solution;
 
+#[cfg(not(feature = "wasm"))]
 pub use crate::model::generic::IntoVarId;
+#[cfg(not(feature = "wasm"))]
 pub use crate::vars::VarId;
