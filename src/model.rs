@@ -16,4 +16,10 @@ impl Model {
 
         id
     }
+
+    /// Creates a new constant decision variable that can be used in constraints.
+    #[must_use]
+    pub fn cst(&mut self, value: i32) -> VarId {
+        self.new_var(value, value)
+    }
 }
