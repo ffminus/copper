@@ -15,8 +15,11 @@ pub trait Branch: Clone {
     /// Iterator over mutations to apply to generate branches to explore.
     type Iter: Iterator<Item = Mutation>;
 
+    /// Initialize brancher on search start.
+    fn new_brancher() -> Self;
+
     /// Initialize brancher from pivot's current domain.
-    fn branch_on(pivot: &Var) -> Self::Iter;
+    fn branch_on(&mut self, pivot: &Var) -> Self::Iter;
 }
 
 /// Set each value in current domain of pivot variable iteratively, in ascending order.
@@ -26,7 +29,11 @@ pub struct SetMinToMax;
 impl Branch for SetMinToMax {
     type Iter = SetMinToMaxIter;
 
-    fn branch_on(pivot: &Var) -> Self::Iter {
+    fn new_brancher() -> Self {
+        Self
+    }
+
+    fn branch_on(&mut self, pivot: &Var) -> Self::Iter {
         SetMinToMaxIter((pivot.min..=pivot.max).rev())
     }
 }
@@ -49,7 +56,11 @@ pub struct SetMaxToMin;
 impl Branch for SetMaxToMin {
     type Iter = SetMaxToMinIter;
 
-    fn branch_on(pivot: &Var) -> Self::Iter {
+    fn new_brancher() -> Self {
+        Self
+    }
+
+    fn branch_on(&mut self, pivot: &Var) -> Self::Iter {
         SetMaxToMinIter(pivot.min..=pivot.max)
     }
 }

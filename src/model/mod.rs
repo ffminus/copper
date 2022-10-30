@@ -214,7 +214,7 @@ impl Model {
 
     fn search<P: Pick, B: Branch>(&self, obj: VarId, is_exhaustive: bool) -> Option<Solution> {
         Searcher::new(&self.deps, obj, is_exhaustive)
-            .search::<P, B, engine::Stack<_>>(&self.vars, &self.props)
+            .search::<P, B, engine::Stack<_, _>>(&self.vars, &self.props)
     }
 }
 

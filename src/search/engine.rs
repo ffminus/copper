@@ -7,22 +7,22 @@ use super::pick::Pick;
 use super::{Choice, Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.
-pub trait Engine<P: Pick> {
+pub trait Engine<P: Pick, B: Branch> {
     /// Initialize engine without requiring a `Default` bound on its generic parameter.
     fn new_engine() -> Self;
 
     /// Perform search, keeping track of spaces to explore on branching.
-    fn search<B: Branch>(self, space: Space<P>, searcher: &Searcher) -> Option<Solution>;
+    fn search(self, space: Space<P, B>, searcher: &Searcher) -> Option<Solution>;
 }
 
 /// Single-threaded LIFO list of nodes to explore.
-pub struct Stack<P: Pick> {
+pub struct Stack<P: Pick, B: Branch> {
     solution: Option<Solution>,
 
-    tasks: Vec<(Choice, Rc<Space<P>>)>,
+    tasks: Vec<(Choice, Rc<Space<P, B>>)>,
 }
 
-impl<P: Pick> Engine<P> for Stack<P> {
+impl<P: Pick, B: Branch> Engine<P, B> for Stack<P, B> {
     fn new_engine() -> Self {
         Self {
             solution: None,
@@ -30,8 +30,8 @@ impl<P: Pick> Engine<P> for Stack<P> {
         }
     }
 
-    fn search<B: Branch>(mut self, space: Space<P>, searcher: &Searcher) -> Option<Solution> {
-        self.push_tasks::<B>(space);
+    fn search(mut self, space: Space<P, B>, searcher: &Searcher) -> Option<Solution> {
+        self.push_tasks(space);
 
         while let Some((choice, space)) = self.tasks.pop() {
             let space = (*space).clone();
@@ -45,7 +45,7 @@ impl<P: Pick> Engine<P> for Stack<P> {
             // No additional searching required for failed spaces
             if let Ok(propagated) = searcher.mutate_then_propagate(&choice, obj_opt, space) {
                 match propagated {
-                    Propagated::Fixed(space) => self.push_tasks::<B>(space),
+                    Propagated::Fixed(space) => self.push_tasks(space),
                     Propagated::Done(candidate) => {
                         // End search early if user is only looking for feasibility
                         if !searcher.is_exhaustive {
@@ -69,15 +69,17 @@ impl<P: Pick> Engine<P> for Stack<P> {
     }
 }
 
-impl<P: Pick> Stack<P> {
-    fn push_tasks<B: Branch>(&mut self, mut space: Space<P>) {
+impl<P: Pick, B: Branch> Stack<P, B> {
+    fn push_tasks(&mut self, mut space: Space<P, B>) {
         // Select pivot variable to branch on
         if let Some(pivot) = space.picker.pick(&space.vars) {
+            let mutations = space.brancher.branch_on(&space.vars[pivot]);
+
             // Store a single copy of search space, drops when all choices have been explored
             let space = Rc::new(space);
 
             // Queue branches to be explored
-            for mutation in B::branch_on(&space.vars[pivot]) {
+            for mutation in mutations {
                 self.tasks
                     .push((Choice { pivot, mutation }, Rc::clone(&space)));
             }
