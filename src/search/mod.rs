@@ -9,7 +9,7 @@ use crate::solution::Solution;
 use crate::vars::{Var, VarId, Vars};
 
 use self::backlog::Backlog;
-use self::branch::Mutation;
+use self::branch::{Branch, Mutation};
 use self::pick::Pick;
 
 /// Store immutable model variables referenced during search.
@@ -28,15 +28,15 @@ impl<'s> Searcher<'s> {
         }
     }
 
-    pub fn search<T: Backlog, P: Pick>(&self, vars: &[Var], props: &Props) -> Option<Solution> {
+    pub fn search<T: Backlog, P: Pick, B: Branch>(&self, v: &[Var], p: &Props) -> Option<Solution> {
         let space = Space {
-            vars: Vars::new(vars),
-            props: props.clone(),
+            vars: Vars::new(v),
+            props: p.clone(),
         };
 
         // Initial propagation runs all declared propagators
-        match self.propagate_with_all_props(props, space).ok()? {
-            Propagated::Fixed(space) => T::search::<P>(space, self),
+        match self.propagate_with_all_props(p, space).ok()? {
+            Propagated::Fixed(space) => T::search::<P, B>(space, self),
             Propagated::Done(solution) => Some(solution),
         }
     }
