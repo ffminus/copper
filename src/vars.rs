@@ -83,6 +83,10 @@ impl Vars {
         }
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = (VarId, &Var)> + '_ {
+        self.vars.iter().enumerate().map(|(i, var)| (VarId(i), var))
+    }
+
     /// Extract assignments if all domains are singletons.
     pub fn get_assignment_if_all_variables_are_set(&self) -> Option<Vec<i32>> {
         if self.vars.iter().all(Var::is_set) {
