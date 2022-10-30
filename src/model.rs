@@ -23,6 +23,12 @@ impl Model {
         id
     }
 
+    /// Creates a new binary decision variable.
+    #[must_use]
+    pub fn new_var_binary(&mut self) -> VarId {
+        self.new_var(0, 1)
+    }
+
     /// Creates a new constant decision variable that can be used in constraints.
     #[must_use]
     pub fn cst(&mut self, value: i32) -> VarId {
