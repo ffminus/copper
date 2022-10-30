@@ -22,3 +22,16 @@ wasm = ["dep:wasm-bindgen"]
 [dependencies]
 # Bindings generation for WASM
 wasm-bindgen = { version = "0.2.82", optional = true }
+
+
+[dev-dependencies]
+criterion  = "0.3.6" # Benchmark harness
+serde_json = "1.0"   # JSON serializer
+
+# Serialization framework
+serde = { version = "1.0", features = ["derive"] }
+
+
+[[bench]]
+name    = "knapsack"
+harness = false
