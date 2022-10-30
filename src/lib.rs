@@ -75,11 +75,13 @@ mod tests;
 pub use crate::model::{Model, Strategy};
 pub use crate::solution::Solution;
 
+// ? Avoid exporting symbols not part of the WASM API if feature is enabled
 #[cfg(not(feature = "wasm"))]
-pub use crate::model::generic::IntoVarId;
+mod not_wasm {
+    pub use crate::model::generic::IntoVarId;
+    pub use crate::props::{Failed, Propagate, ResultProp};
+    pub use crate::search::{branch, pick};
+    pub use crate::vars::{VarId, Vars};
+}
 #[cfg(not(feature = "wasm"))]
-pub use crate::props::{Failed, Propagate, ResultProp};
-#[cfg(not(feature = "wasm"))]
-pub use crate::search::{branch, pick};
-#[cfg(not(feature = "wasm"))]
-pub use crate::vars::{VarId, Vars};
+pub use not_wasm::*;
