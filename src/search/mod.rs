@@ -131,6 +131,7 @@ pub struct Space {
 type ResultProps = Result<Propagated, Failed>;
 
 /// No propagator failed the space, either search is done,
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 enum Propagated {
     /// All propagators are at a fixed point, and domain is not reduced to a single assignment.
