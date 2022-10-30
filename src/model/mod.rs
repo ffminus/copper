@@ -13,6 +13,7 @@ pub struct Model {
     deps: Deps,
 }
 
+// ? Methods that are exported as-is to both Rust and WASM interfaces
 impl Model {
     /// Creates a new model, used to declare decision variables and constraints.
     #[must_use]
@@ -20,6 +21,18 @@ impl Model {
         Self::default()
     }
 
+    /// Performs search and returns the first assignment found that satisfies all constraints.
+    #[must_use]
+    pub fn solve(&mut self) -> Option<Solution> {
+        // ? Dummy decision variable to use generic search logic
+        let obj = self.cst_impl(0);
+
+        self.search(obj, true)
+    }
+}
+
+// ? Internal method implementations that wrappers can call
+impl Model {
     /// Creates a new decision variable with domain [`min`, `max`].
     #[must_use]
     pub fn new_var(&mut self, min: i32, max: i32) -> VarId {
@@ -206,15 +219,6 @@ impl Model {
         self.deps.props.leq.push((x, y));
         self.deps.vars[*x].push(id);
         self.deps.vars[*y].push(id);
-    }
-
-    /// Performs search and returns the first assignment found that satisfies all constraints.
-    #[must_use]
-    pub fn solve(&mut self) -> Option<Solution> {
-        // ? Dummy decision variable to use generic search logic
-        let obj = self.cst(0);
-
-        self.search(obj, true)
     }
 
     /// Performs search and returns the assignment that minimizes the provided objective variable.
