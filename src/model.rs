@@ -37,6 +37,13 @@ impl Model {
         self.new_var(value, value)
     }
 
+    /// Creates a new expression that represents the opposite of `x`.
+    #[must_use]
+    pub fn opposite(&mut self, x: impl IntoVarId) -> VarId {
+        let x_opposite = x.into_var_id(self);
+        self.scale_neg(x_opposite, -1)
+    }
+
     /// Creates a new expression that represents `coef` * `x`.
     #[must_use]
     pub fn scale(&mut self, x: impl IntoVarId, coef: i32) -> VarId {
@@ -102,6 +109,16 @@ impl Model {
         self.deps.vars[*y].push(id);
 
         plus
+    }
+
+    /// Creates a new expression that represents `x` - `y`.
+    #[must_use]
+    pub fn minus(&mut self, x: impl IntoVarId, y: impl IntoVarId) -> VarId {
+        let (x, y_opposite) = (x.into_var_id(self), y.into_var_id(self));
+
+        let y = self.opposite(y_opposite);
+
+        self.plus(x, y)
     }
 
     /// Creates a new expression that represents the sum of the provided variables.
