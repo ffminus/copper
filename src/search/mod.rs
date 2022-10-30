@@ -1,9 +1,6 @@
 /// Domain branching strategies.
 pub mod branch;
 
-/// Variable selection strategies.
-pub mod pick;
-
 pub mod engine;
 
 use std::collections::VecDeque;
@@ -12,9 +9,9 @@ use crate::props::{self, Failed, PropId, Props};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId, Vars};
 
+use self::branch::pick::Pick;
 use self::branch::{Branch, Mutation};
 use self::engine::Engine;
-use self::pick::Pick;
 
 /// Store immutable model variables referenced during search.
 pub struct Searcher<'s> {

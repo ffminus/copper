@@ -1,6 +1,6 @@
 use crate::props::Propagate;
 use crate::search::branch::{Branch, SetMinToMax as BrancherDefault};
-use crate::search::pick::{FirstUnset as PickerDefault, Pick};
+use crate::search::branch::pick::{FirstUnset as PickerDefault, Pick};
 use crate::solution::Solution;
 use crate::vars::VarId;
 

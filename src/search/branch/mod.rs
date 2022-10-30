@@ -1,3 +1,6 @@
+/// Pivot variable selection strategies.
+pub mod pick;
+
 use std::iter::Rev;
 use std::ops::RangeInclusive;
 

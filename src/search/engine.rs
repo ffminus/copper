@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::solution::Solution;
 
 use super::branch::Branch;
-use super::pick::Pick;
+use super::branch::pick::Pick;
 use super::{Choice, Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.

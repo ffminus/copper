@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 
 use crate::props::{self, PropId, Propagate, Props};
 use crate::search::branch::{Branch, SetMinToMax as BrancherDefault};
-use crate::search::pick::{FirstUnset as PickerDefault, Pick};
+use crate::search::branch::pick::{FirstUnset as PickerDefault, Pick};
 use crate::search::{engine, Deps, Searcher};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId};
