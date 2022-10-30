@@ -1,8 +1,12 @@
+pub mod backlog;
+
 use std::collections::VecDeque;
 
 use crate::props::{self, PropId, Propagate, Props};
 use crate::solution::Solution;
 use crate::vars::{Var, Vars};
+
+use self::backlog::Backlog;
 
 /// Store immutable model variables referenced during search.
 pub struct Searcher<'s> {
@@ -14,7 +18,7 @@ impl<'s> Searcher<'s> {
         Self { deps }
     }
 
-    pub fn search(&self, vars: &[Var], props: &Props) -> Option<Solution> {
+    pub fn search<B: Backlog>(&self, vars: &[Var], props: &Props) -> Option<Solution> {
         let space = Space {
             vars: Vars::new(vars),
             props: props.clone(),
@@ -23,7 +27,7 @@ impl<'s> Searcher<'s> {
         // Initial propagation runs all declared propagators
         match self.propagate_with_all_props(props, space) {
             Propagated::Failed => None,
-            Propagated::Fixed(_) => todo!(),
+            Propagated::Fixed(space) => B::search(space, self),
             Propagated::Done(solution) => Some(solution),
         }
     }

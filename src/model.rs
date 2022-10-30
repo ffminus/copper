@@ -1,5 +1,5 @@
 use crate::props::{self, PropId, Props};
-use crate::search::{Deps, Searcher};
+use crate::search::{backlog, Deps, Searcher};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId};
 
@@ -45,7 +45,7 @@ impl Model {
     /// Performs search and returns the first assignment found that satisfies all constraints.
     #[must_use]
     pub fn solve(&self) -> Option<Solution> {
-        Searcher::new(&self.deps).search(&self.vars, &self.props)
+        Searcher::new(&self.deps).search::<backlog::Stack>(&self.vars, &self.props)
     }
 }
 
