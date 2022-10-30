@@ -121,6 +121,12 @@ impl Model {
         self.propagator_impl(Box::new(prop), deps);
     }
 
+    /// Performs search and returns the first assignment found that satisfies all constraints.
+    #[must_use]
+    pub fn solve(&mut self) -> Option<Solution> {
+        self.solve_impl()
+    }
+
     /// Performs search and returns the assignment that minimizes the provided objective variable.
     #[must_use]
     pub fn minimize(mut self, obj: impl IntoVarId) -> Option<Solution> {

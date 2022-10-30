@@ -34,15 +34,6 @@ impl Model {
     pub fn new() -> Self {
         Self::default()
     }
-
-    /// Performs search and returns the first assignment found that satisfies all constraints.
-    #[must_use]
-    pub fn solve(&mut self) -> Option<Solution> {
-        // ? Dummy decision variable to use generic search logic
-        let obj = self.cst_impl(0);
-
-        self.search(obj, true)
-    }
 }
 
 // ? Internal method implementations that wrappers can call
@@ -199,6 +190,13 @@ impl Model {
         }
 
         self.props.custom.push(prop);
+    }
+
+    fn solve_impl(&mut self) -> Option<Solution> {
+        // ? Dummy decision variable to use generic search logic
+        let obj = self.cst_impl(0);
+
+        self.search(obj, true)
     }
 
     fn minimize_impl(&self, obj: VarId) -> Option<Solution> {
