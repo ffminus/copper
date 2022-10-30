@@ -57,7 +57,7 @@
 //! // Find the selection of items that maximizes the bag's value
 //! let solution = m.maximize(value).unwrap();
 //!
-//! assert_eq!(solution.get_values(&xs), vec![0, 0, 1, 0, 1, 1, 1, 1]);
+//! assert_eq!(solution.get_values_binary(&xs), vec![false, false, true, false, true, true, true, true]);
 //! assert_eq!(solution[weight], 102);
 //! assert_eq!(solution[value], 280);
 //! ```

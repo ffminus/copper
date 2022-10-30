@@ -14,6 +14,12 @@ impl Solution {
     pub fn get_values(&self, xs: &[VarId]) -> Vec<i32> {
         self.get_values_impl(xs)
     }
+
+    /// Access the solution value of a slice of binary variables.
+    #[must_use]
+    pub fn get_values_binary(&self, xs: &[VarId]) -> Vec<bool> {
+        self.get_values_binary_impl(xs)
+    }
 }
 
 impl Solution {
@@ -23,6 +29,10 @@ impl Solution {
 
     fn get_values_impl(&self, xs: &[VarId]) -> Vec<i32> {
         xs.iter().map(|id| self[*id]).collect()
+    }
+
+    fn get_values_binary_impl(&self, xs: &[VarId]) -> Vec<bool> {
+        xs.iter().map(|id| self[*id] != 0).collect()
     }
 }
 
