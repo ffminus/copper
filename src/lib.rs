@@ -16,3 +16,8 @@
 )]
 // Disable lints with false positives
 #![allow(clippy::option_if_let_else)]
+
+mod model;
+mod vars;
+
+pub use crate::model::Model;
