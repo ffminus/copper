@@ -26,7 +26,7 @@ impl<'s> Searcher<'s> {
         }
     }
 
-    pub fn search<B: Backlog>(&self, vars: &[Var], props: &Props) -> Option<Solution> {
+    pub fn search<T: Backlog>(&self, vars: &[Var], props: &Props) -> Option<Solution> {
         let space = Space {
             vars: Vars::new(vars),
             props: props.clone(),
@@ -34,7 +34,7 @@ impl<'s> Searcher<'s> {
 
         // Initial propagation runs all declared propagators
         match self.propagate_with_all_props(props, space).ok()? {
-            Propagated::Fixed(space) => B::search(space, self),
+            Propagated::Fixed(space) => T::search(space, self),
             Propagated::Done(solution) => Some(solution),
         }
     }
