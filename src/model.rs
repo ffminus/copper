@@ -1,5 +1,6 @@
 use crate::props::{self, PropId, Props};
-use crate::search::Deps;
+use crate::search::{Deps, Searcher};
+use crate::solution::Solution;
 use crate::vars::{Var, VarId};
 
 /// Problem definition, with decision variables and constraints.
@@ -39,6 +40,12 @@ impl Model {
         self.deps.props.eq.push((x, y));
         self.deps.vars[*x].push(id);
         self.deps.vars[*y].push(id);
+    }
+
+    /// Performs search and returns the first assignment found that satisfies all constraints.
+    #[must_use]
+    pub fn solve(&self) -> Option<Solution> {
+        Searcher::new(&self.deps).search(&self.vars, &self.props)
     }
 }
 
