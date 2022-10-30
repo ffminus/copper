@@ -7,13 +7,15 @@ use super::pick::Pick;
 use super::{Choice, Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.
-pub trait Engine: Default {
+pub trait Engine {
+    /// Initialize engine without requiring a `Default` bound on its generic parameter.
+    fn new_engine() -> Self;
+
     /// Perform search, keeping track of spaces to explore on branching.
     fn search<P: Pick, B: Branch>(self, space: Space, searcher: &Searcher) -> Option<Solution>;
 }
 
 /// Single-threaded LIFO list of nodes to explore.
-#[derive(Default)]
 pub struct Stack {
     solution: Option<Solution>,
 
@@ -21,6 +23,13 @@ pub struct Stack {
 }
 
 impl Engine for Stack {
+    fn new_engine() -> Self {
+        Self {
+            solution: None,
+            tasks: Vec::new(),
+        }
+    }
+
     fn search<P: Pick, B: Branch>(mut self, space: Space, searcher: &Searcher) -> Option<Solution> {
         self.push_tasks::<P, B>(space);
 
