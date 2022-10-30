@@ -74,8 +74,8 @@ impl PropScalePos {
         let min = max_of(var_x.min, var_y.min.next_multiple_of_tmp(coef) / coef);
         let max = min_of(var_x.max, (var_y.max - var_y.max.rem_euclid(coef)) / coef);
 
-        let vars = vars.set_min_and_max(x, min, max)?;
-        let vars = vars.set_min_and_max(y, min * coef, max * coef)?;
+        let vars = vars.try_set_min_and_max(x, min, max)?;
+        let vars = vars.try_set_min_and_max(y, min * coef, max * coef)?;
 
         Ok(vars)
     }
@@ -94,8 +94,8 @@ impl PropScaleNeg {
         let min = max_of(var_x.min, (var_y.max - var_y.max.rem_euclid(-coef)) / coef);
         let max = min_of(var_x.max, var_y.min.next_multiple_of_tmp(-coef) / coef);
 
-        let vars = vars.set_min_and_max(x, min, max)?;
-        let vars = vars.set_min_and_max(y, max * coef, min * coef)?;
+        let vars = vars.try_set_min_and_max(x, min, max)?;
+        let vars = vars.try_set_min_and_max(y, max * coef, min * coef)?;
 
         Ok(vars)
     }
@@ -117,9 +117,9 @@ impl PropPlus {
         let (x_min_new, x_max_new) = (min - var_y.max, max - var_y.min);
         let (y_min_new, y_max_new) = (min - var_x.max, max - var_x.min);
 
-        let vars = vars.set_min_and_max(x, x_min_new, x_max_new)?;
-        let vars = vars.set_min_and_max(y, y_min_new, y_max_new)?;
-        let vars = vars.set_min_and_max(p, min, max)?;
+        let vars = vars.try_set_min_and_max(x, x_min_new, x_max_new)?;
+        let vars = vars.try_set_min_and_max(y, y_min_new, y_max_new)?;
+        let vars = vars.try_set_min_and_max(p, min, max)?;
 
         Ok(vars)
     }
@@ -145,13 +145,13 @@ impl PropSum {
         let min = max_of(sum_of_mins, var.min);
         let max = min_of(sum_of_maxs, var.max);
 
-        vars = vars.set_min_and_max(s, min, max)?;
+        vars = vars.try_set_min_and_max(s, min, max)?;
 
         for &x in xs {
             let x_min_new = min - (sum_of_maxs - vars[x].max);
             let x_max_new = max - (sum_of_mins - vars[x].min);
 
-            vars = vars.set_min_and_max(x, x_min_new, x_max_new)?;
+            vars = vars.try_set_min_and_max(x, x_min_new, x_max_new)?;
         }
 
         Ok(vars)
@@ -170,8 +170,8 @@ impl PropEq {
         let min = max_of(var_x.min, var_y.min);
         let max = min_of(var_x.max, var_y.max);
 
-        let vars = vars.set_min_and_max(x, min, max)?;
-        let vars = vars.set_min_and_max(y, min, max)?;
+        let vars = vars.try_set_min_and_max(x, min, max)?;
+        let vars = vars.try_set_min_and_max(y, min, max)?;
 
         Ok(vars)
     }
@@ -187,6 +187,6 @@ impl PropLeq {
     pub fn propagate((x, y): PropLeqDeps, vars: Vars) -> ResultProp {
         let max = min_of(vars[x].max, vars[y].max);
 
-        vars.set_max(x, max)
+        vars.try_set_max(x, max)
     }
 }

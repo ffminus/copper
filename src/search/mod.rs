@@ -55,12 +55,12 @@ impl<'s> Searcher<'s> {
     fn branch(&self, branch: &Branch, obj_opt: Option<i32>, mut space: Space) -> ResultProps {
         // Apply selected branch to search space
         space.vars = match branch.choice {
-            Choice::Set(val) => space.vars.set(branch.pivot, val)?,
+            Choice::Set(val) => space.vars.try_set(branch.pivot, val)?,
         };
 
         // Prune domains that cannot improve on the current best found objective value
         if let Some(obj) = obj_opt {
-            space.vars = space.vars.set_max(self.obj, obj - 1)?;
+            space.vars = space.vars.try_set_max(self.obj, obj - 1)?;
         }
 
         // Only set dependent propagators as active

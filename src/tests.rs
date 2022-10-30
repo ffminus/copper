@@ -106,8 +106,8 @@ impl Propagate for PropEqCustom {
         let min = std::cmp::max(var_x.min, var_y.min);
         let max = std::cmp::min(var_x.max, var_y.max);
 
-        let vars = vars.set_min_and_max(self.x, min, max)?;
-        let vars = vars.set_min_and_max(self.y, min, max)?;
+        let vars = vars.try_set_min_and_max(self.x, min, max)?;
+        let vars = vars.try_set_min_and_max(self.y, min, max)?;
 
         Ok(vars)
     }
