@@ -1,3 +1,6 @@
+// ? Generic trampoline methods that cannot be exposed to WASM
+pub mod generic;
+
 use std::cmp::Ordering;
 
 use crate::props::{self, PropId, Props};
@@ -33,9 +36,7 @@ impl Model {
 
 // ? Internal method implementations that wrappers can call
 impl Model {
-    /// Creates a new decision variable with domain [`min`, `max`].
-    #[must_use]
-    pub fn new_var(&mut self, min: i32, max: i32) -> VarId {
+    fn new_var_impl(&mut self, min: i32, max: i32) -> VarId {
         let id = VarId::new(self.vars.len());
 
         self.vars.push(Var { min, max });
@@ -44,53 +45,38 @@ impl Model {
         id
     }
 
-    /// Creates `n` new decision variables with domain [`min`, `max`].
-    #[must_use]
-    pub fn new_vars(&mut self, n: usize, min: i32, max: i32) -> Vec<VarId> {
-        (0..n).map(|_| self.new_var(min, max)).collect()
+    fn new_var_binary_impl(&mut self) -> VarId {
+        self.new_var_impl(0, 1)
     }
 
-    /// Creates a new binary decision variable.
-    #[must_use]
-    pub fn new_var_binary(&mut self) -> VarId {
-        self.new_var(0, 1)
+    fn cst_impl(&mut self, value: i32) -> VarId {
+        self.new_var_impl(value, value)
     }
 
-    /// Creates `n` new binary decision variables.
-    #[must_use]
-    pub fn new_vars_binary(&mut self, n: usize) -> Vec<VarId> {
-        (0..n).map(|_| self.new_var_binary()).collect()
+    fn new_vars_impl(&mut self, n: usize, min: i32, max: i32) -> Vec<VarId> {
+        (0..n).map(|_| self.new_var_impl(min, max)).collect()
     }
 
-    /// Creates a new constant decision variable that can be used in constraints.
-    #[must_use]
-    pub fn cst(&mut self, value: i32) -> VarId {
-        self.new_var(value, value)
+    fn new_vars_binary_impl(&mut self, n: usize) -> Vec<VarId> {
+        (0..n).map(|_| self.new_var_binary_impl()).collect()
     }
 
-    /// Creates a new expression that represents the opposite of `x`.
-    #[must_use]
-    pub fn opposite(&mut self, x: impl IntoVarId) -> VarId {
-        let x_opposite = x.into_var_id(self);
-        self.scale_neg(x_opposite, -1)
+    fn opposite_impl(&mut self, x: VarId) -> VarId {
+        self.scale_neg(x, -1)
     }
 
-    /// Creates a new expression that represents `coef` * `x`.
-    #[must_use]
-    pub fn scale(&mut self, x: impl IntoVarId, coef: i32) -> VarId {
+    fn scale_impl(&mut self, x: VarId, coef: i32) -> VarId {
         match coef.cmp(&0) {
             Ordering::Less => self.scale_neg(x, coef),
-            Ordering::Equal => self.cst(0),
+            Ordering::Equal => self.cst_impl(0),
             Ordering::Greater => self.scale_pos(x, coef),
         }
     }
 
-    fn scale_pos(&mut self, x: impl IntoVarId, coef: i32) -> VarId {
-        let x = x.into_var_id(self);
-
+    fn scale_pos(&mut self, x: VarId, coef: i32) -> VarId {
         let var = &self.vars[*x];
 
-        let s = self.new_var(var.min * coef, var.max * coef);
+        let s = self.new_var_impl(var.min * coef, var.max * coef);
 
         let id = PropId::ScalePos(self.props.scale_pos.len());
 
@@ -103,12 +89,10 @@ impl Model {
         s
     }
 
-    fn scale_neg(&mut self, x: impl IntoVarId, coef: i32) -> VarId {
-        let x = x.into_var_id(self);
-
+    fn scale_neg(&mut self, x: VarId, coef: i32) -> VarId {
         let var = &self.vars[*x];
 
-        let s = self.new_var(var.max * coef, var.min * coef);
+        let s = self.new_var_impl(var.max * coef, var.min * coef);
 
         let id = PropId::ScaleNeg(self.props.scale_neg.len());
 
@@ -121,15 +105,11 @@ impl Model {
         s
     }
 
-    /// Creates a new expression that represents `x` + `y`.
-    #[must_use]
-    pub fn plus(&mut self, x: impl IntoVarId, y: impl IntoVarId) -> VarId {
-        let (x, y) = (x.into_var_id(self), y.into_var_id(self));
-
+    fn plus_impl(&mut self, x: VarId, y: VarId) -> VarId {
         let var_x = &self.vars[*x];
         let var_y = &self.vars[*y];
 
-        let plus = self.new_var(var_x.min + var_y.min, var_x.max + var_y.max);
+        let plus = self.new_var_impl(var_x.min + var_y.min, var_x.max + var_y.max);
 
         let id = PropId::Plus(self.props.plus.len());
 
@@ -142,29 +122,19 @@ impl Model {
         plus
     }
 
-    /// Creates a new expression that represents `x` - `y`.
-    #[must_use]
-    pub fn minus(&mut self, x: impl IntoVarId, y: impl IntoVarId) -> VarId {
-        let (x, y_opposite) = (x.into_var_id(self), y.into_var_id(self));
+    fn minus_impl(&mut self, x: VarId, y: VarId) -> VarId {
+        let y_opposite = self.opposite_impl(y);
 
-        let y = self.opposite(y_opposite);
-
-        self.plus(x, y)
+        self.plus_impl(x, y_opposite)
     }
 
-    /// Creates a new expression that represents the sum of the provided variables.
-    ///
-    /// # Panics
-    ///
-    /// Function will panic if provided slice is empty.
-    #[must_use]
-    pub fn sum(&mut self, xs: &[VarId]) -> VarId {
+    fn sum_impl(&mut self, xs: &[VarId]) -> VarId {
         assert!(!xs.is_empty());
 
         let min = xs.iter().copied().map(|id| self.vars[*id].min).sum();
         let max = xs.iter().copied().map(|id| self.vars[*id].max).sum();
 
-        let sum = self.new_var(min, max);
+        let sum = self.new_var_impl(min, max);
 
         let id = PropId::Sum(self.props.sum.len());
 
@@ -179,26 +149,18 @@ impl Model {
         sum
     }
 
-    /// Creates a new expression that represents a linear expression.
-    ///
-    /// # Panics
-    ///
-    /// Function will panic if passed slice is empty.
-    pub fn linear(&mut self, xs: &[VarId], coefs: &[i32]) -> VarId {
+    fn linear_impl(&mut self, xs: &[VarId], coefs: &[i32]) -> VarId {
         let terms: Vec<_> = xs
             .iter()
             .copied()
             .zip(coefs.iter().copied())
-            .map(|(x, coef)| self.scale(x, coef))
+            .map(|(x, coef)| self.scale_impl(x, coef))
             .collect();
 
-        self.sum(&terms)
+        self.sum_impl(&terms)
     }
 
-    /// Enforces constraint `x` == `y`.
-    pub fn eq(&mut self, x: impl IntoVarId, y: impl IntoVarId) {
-        let (x, y) = (x.into_var_id(self), y.into_var_id(self));
-
+    fn eq_impl(&mut self, x: VarId, y: VarId) {
         let id = PropId::Eq(self.props.eq.len());
 
         self.props.eq.push(props::PropEq);
@@ -208,10 +170,7 @@ impl Model {
         self.deps.vars[*y].push(id);
     }
 
-    /// Enforces constraint `x` <= `y`.
-    pub fn leq(&mut self, x: impl IntoVarId, y: impl IntoVarId) {
-        let (x, y) = (x.into_var_id(self), y.into_var_id(self));
-
+    fn leq_impl(&mut self, x: VarId, y: VarId) {
         let id = PropId::Leq(self.props.leq.len());
 
         self.props.leq.push(props::PropLeq);
@@ -221,43 +180,18 @@ impl Model {
         self.deps.vars[*y].push(id);
     }
 
-    /// Performs search and returns the assignment that minimizes the provided objective variable.
-    #[must_use]
-    pub fn minimize(mut self, obj: impl IntoVarId) -> Option<Solution> {
-        let obj = obj.into_var_id(&mut self);
-
+    fn minimize_impl(&self, obj: VarId) -> Option<Solution> {
         self.search(obj, false)
     }
 
-    /// Performs search and returns the assignment that maximizes the provided objective variable.
-    #[must_use]
-    pub fn maximize(mut self, obj: impl IntoVarId) -> Option<Solution> {
-        let obj_opposite = obj.into_var_id(&mut self);
-        let obj = self.scale(obj_opposite, -1);
+    fn maximize_impl(mut self, obj: VarId) -> Option<Solution> {
+        let obj_opposite = self.scale_impl(obj, -1);
 
-        self.search(obj, false)
+        self.minimize_impl(obj_opposite)
     }
 
     fn search(&self, obj: VarId, stop_on_feasibility: bool) -> Option<Solution> {
         Searcher::new(&self.deps, obj, stop_on_feasibility)
             .search::<backlog::Stack>(&self.vars, &self.props)
-    }
-}
-
-/// Convenience trait for values that can be converted to a variable id.
-pub trait IntoVarId {
-    /// Convert value to a variable id.
-    fn into_var_id(self, m: &mut Model) -> VarId;
-}
-
-impl IntoVarId for VarId {
-    fn into_var_id(self, _m: &mut Model) -> VarId {
-        self
-    }
-}
-
-impl IntoVarId for i32 {
-    fn into_var_id(self, m: &mut Model) -> VarId {
-        m.cst(self)
     }
 }
