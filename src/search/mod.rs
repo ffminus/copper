@@ -73,7 +73,7 @@ impl<'s> Searcher<'s> {
 
 /// State required for exploring a search tree.
 #[derive(Debug)]
-struct Space {
+pub struct Space {
     vars: Vars,
     props: Props,
 }
