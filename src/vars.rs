@@ -155,15 +155,16 @@ impl Vars {
         Ok(self)
     }
 
+    /// Iterate over variables, with their corresponding ids.
+    pub fn iter(&self) -> impl Iterator<Item = (VarId, &Var)> + '_ {
+        self.vars.iter().enumerate().map(|(i, var)| (VarId(i), var))
+    }
+
     pub(crate) fn new(vars: &[Var]) -> Self {
         Self {
             vars: vars.to_vec(),
             events: HashSet::new(),
         }
-    }
-
-    pub(crate) fn iter(&self) -> impl Iterator<Item = (VarId, &Var)> + '_ {
-        self.vars.iter().enumerate().map(|(i, var)| (VarId(i), var))
     }
 
     /// Extract assignments if all domains are singletons.
