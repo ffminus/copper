@@ -14,6 +14,12 @@ pub struct Model {
 }
 
 impl Model {
+    /// Creates a new model, used to declare decision variables and constraints.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /// Creates a new decision variable with domain [`min`, `max`].
     #[must_use]
     pub fn new_var(&mut self, min: i32, max: i32) -> VarId {

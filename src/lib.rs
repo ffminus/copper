@@ -40,7 +40,7 @@
 //! let weight_max = 102;
 //!
 //! // Model object, used to declare variables and constraints
-//! let mut m = Model::default();
+//! let mut m = Model::new();
 //!
 //! // Binary decision variables: for each item, do I put it in the bag?
 //! let xs = m.new_vars_binary(item_weights.len());

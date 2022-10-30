@@ -2,7 +2,7 @@ use crate::Model;
 
 #[test]
 fn plus() {
-    let mut m = Model::default();
+    let mut m = Model::new();
 
     let x = m.new_var(0, 5);
     let y = m.new_var(3, 6);
@@ -17,7 +17,7 @@ fn plus() {
 
 #[test]
 fn sum() {
-    let mut m = Model::default();
+    let mut m = Model::new();
 
     let x = m.new_var(0, 5);
     let y = m.new_var(3, 6);
@@ -32,7 +32,7 @@ fn sum() {
 
 #[test]
 fn eq() {
-    let mut m = Model::default();
+    let mut m = Model::new();
 
     let x = m.new_var(0, 5);
 
@@ -45,7 +45,7 @@ fn eq() {
 
 #[test]
 fn leq() {
-    let mut m = Model::default();
+    let mut m = Model::new();
 
     let x = m.new_var(0, 9);
 
@@ -58,7 +58,7 @@ fn leq() {
 
 #[test]
 fn solve() {
-    let mut m = Model::default();
+    let mut m = Model::new();
 
     let x = m.new_var(0, 5);
     let y = m.new_var(2, 5);
@@ -73,7 +73,7 @@ fn solve() {
 
 #[test]
 fn minimize() {
-    let mut m = Model::default();
+    let mut m = Model::new();
 
     let x = m.new_var(0, 5);
 
@@ -84,7 +84,7 @@ fn minimize() {
 
 #[test]
 fn maximize() {
-    let mut m = Model::default();
+    let mut m = Model::new();
 
     let x = m.new_var(0, 5);
 
