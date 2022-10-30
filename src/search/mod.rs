@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 
 use crate::props::{self, PropId, Propagate, Props};
 use crate::solution::Solution;
-use crate::vars::{Var, Vars};
+use crate::vars::{Var, VarId, Vars};
 
 use self::backlog::Backlog;
 use self::branch::{Branch, Choice};
@@ -13,11 +13,17 @@ use self::branch::{Branch, Choice};
 /// Store immutable model variables referenced during search.
 pub struct Searcher<'s> {
     deps: &'s Deps,
+    obj: VarId,
+    stop_on_feasibility: bool,
 }
 
 impl<'s> Searcher<'s> {
-    pub const fn new(deps: &'s Deps) -> Self {
-        Self { deps }
+    pub const fn new(deps: &'s Deps, obj: VarId, stop_on_feasibility: bool) -> Self {
+        Self {
+            deps,
+            obj,
+            stop_on_feasibility,
+        }
     }
 
     pub fn search<B: Backlog>(&self, vars: &[Var], props: &Props) -> Option<Solution> {

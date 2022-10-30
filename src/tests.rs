@@ -27,3 +27,14 @@ fn solve() {
     assert_eq!(solution[x], 2);
     assert_eq!(solution[y], 2);
 }
+
+#[test]
+fn minimize() {
+    let mut m = Model::default();
+
+    let x = m.new_var(0, 5);
+
+    let solution = m.minimize(x).unwrap();
+
+    assert_eq!(solution[x], 0);
+}

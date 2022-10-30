@@ -44,8 +44,24 @@ impl Model {
 
     /// Performs search and returns the first assignment found that satisfies all constraints.
     #[must_use]
-    pub fn solve(&self) -> Option<Solution> {
-        Searcher::new(&self.deps).search::<backlog::Stack>(&self.vars, &self.props)
+    pub fn solve(&mut self) -> Option<Solution> {
+        // ? Dummy decision variable to use generic search logic
+        let obj = self.cst(0);
+
+        self.search(obj, true)
+    }
+
+    /// Performs search and returns the assignment that minimizes the provided objective variable.
+    #[must_use]
+    pub fn minimize(mut self, obj: impl IntoVarId) -> Option<Solution> {
+        let obj = obj.into_var_id(&mut self);
+
+        self.search(obj, false)
+    }
+
+    fn search(&self, obj: VarId, stop_on_feasibility: bool) -> Option<Solution> {
+        Searcher::new(&self.deps, obj, stop_on_feasibility)
+            .search::<backlog::Stack>(&self.vars, &self.props)
     }
 }
 

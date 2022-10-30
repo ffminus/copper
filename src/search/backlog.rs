@@ -32,7 +32,21 @@ impl Backlog for Stack {
             match searcher.branch(&branch, space) {
                 Propagated::Failed => {}
                 Propagated::Fixed(space) => backlog.push_branches(space),
-                Propagated::Done(candidate) => return Some(candidate),
+                Propagated::Done(candidate) => {
+                    // End search early if user is only looking for feasibility
+                    if searcher.stop_on_feasibility {
+                        return Some(candidate);
+                    }
+
+                    if let Some(solution) = backlog.solution.as_mut() {
+                        // Only store new solution if it improves on current best
+                        if candidate[searcher.obj] < solution[searcher.obj] {
+                            backlog.solution = Some(candidate);
+                        }
+                    } else {
+                        backlog.solution = Some(candidate);
+                    }
+                }
             }
         }
 
