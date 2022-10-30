@@ -40,7 +40,7 @@ impl<'s> Searcher<'s> {
 
         // Initial propagation runs all declared propagators
         match self.propagate_with_all_props(p, space).ok()? {
-            Propagated::Fixed(space) => T::search::<P, B>(space, self),
+            Propagated::Fixed(space) => T::default().search::<P, B>(space, self),
             Propagated::Done(solution) => Some(solution),
         }
     }

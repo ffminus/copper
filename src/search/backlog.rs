@@ -7,9 +7,9 @@ use super::pick::Pick;
 use super::{Choice, Propagated, Searcher, Space};
 
 /// Engine to schedule spaces to be explored during search.
-pub trait Backlog {
+pub trait Backlog: Default {
     /// Perform search, keeping track of spaces to explore on branching.
-    fn search<P: Pick, B: Branch>(space: Space, searcher: &Searcher) -> Option<Solution>;
+    fn search<P: Pick, B: Branch>(self, space: Space, searcher: &Searcher) -> Option<Solution>;
 }
 
 /// Single-threaded LIFO list of nodes to explore.
@@ -21,16 +21,14 @@ pub struct Stack {
 }
 
 impl Backlog for Stack {
-    fn search<P: Pick, B: Branch>(space: Space, searcher: &Searcher) -> Option<Solution> {
-        let mut backlog = Self::default();
+    fn search<P: Pick, B: Branch>(mut self, space: Space, searcher: &Searcher) -> Option<Solution> {
+        self.push_tasks::<P, B>(space);
 
-        backlog.push_tasks::<P, B>(space);
-
-        while let Some((choice, space)) = backlog.tasks.pop() {
+        while let Some((choice, space)) = self.tasks.pop() {
             let space = (*space).clone();
 
             // Provide current best objective value to allow for additional pruning
-            let obj_opt = backlog
+            let obj_opt = self
                 .solution
                 .as_ref()
                 .map(|solution| solution[searcher.obj]);
@@ -38,27 +36,27 @@ impl Backlog for Stack {
             // No additional searching required for failed spaces
             if let Ok(propagated) = searcher.branch(&choice, obj_opt, space) {
                 match propagated {
-                    Propagated::Fixed(space) => backlog.push_tasks::<P, B>(space),
+                    Propagated::Fixed(space) => self.push_tasks::<P, B>(space),
                     Propagated::Done(candidate) => {
                         // End search early if user is only looking for feasibility
                         if searcher.stop_on_feasibility {
                             return Some(candidate);
                         }
 
-                        if let Some(solution) = backlog.solution.as_mut() {
+                        if let Some(solution) = self.solution.as_mut() {
                             // Only store new solution if it improves on current best
                             if candidate[searcher.obj] < solution[searcher.obj] {
-                                backlog.solution = Some(candidate);
+                                self.solution = Some(candidate);
                             }
                         } else {
-                            backlog.solution = Some(candidate);
+                            self.solution = Some(candidate);
                         }
                     }
                 }
             }
         }
 
-        backlog.solution
+        self.solution
     }
 }
 
