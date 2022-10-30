@@ -1,4 +1,6 @@
 use crate::props::Propagate;
+use crate::search::branch::SetMinToMax;
+use crate::search::pick::FirstUnset;
 use crate::solution::Solution;
 use crate::vars::VarId;
 
@@ -124,20 +126,20 @@ impl Model {
     /// Performs search and returns the first assignment found that satisfies all constraints.
     #[must_use]
     pub fn solve(&mut self) -> Option<Solution> {
-        self.solve_impl()
+        self.solve_impl::<FirstUnset, SetMinToMax>()
     }
 
     /// Performs search and returns the assignment that minimizes the provided objective variable.
     #[must_use]
     pub fn minimize(mut self, obj: impl IntoVarId) -> Option<Solution> {
         let obj = obj.into_var_id(&mut self);
-        self.minimize_impl(obj)
+        self.minimize_impl::<FirstUnset, SetMinToMax>(obj)
     }
 
     /// Performs search and returns the assignment that maximizes the provided objective variable.
     #[must_use]
     pub fn maximize(mut self, obj: impl IntoVarId) -> Option<Solution> {
         let obj = obj.into_var_id(&mut self);
-        self.maximize_impl(obj)
+        self.maximize_impl::<FirstUnset, SetMinToMax>(obj)
     }
 }

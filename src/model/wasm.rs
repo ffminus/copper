@@ -1,5 +1,7 @@
 use wasm_bindgen::prelude::wasm_bindgen;
 
+use crate::search::branch::SetMinToMax as Brancher;
+use crate::search::pick::FirstUnset as Picker;
 use crate::solution::Solution;
 use crate::vars::wasm::{from_slice_of_ids, into_boxed_slice_of_ids, VarId};
 
@@ -94,18 +96,18 @@ impl Model {
     /// Performs search and returns the first assignment found that satisfies all constraints.
     #[must_use]
     pub fn solve(&mut self) -> Option<Solution> {
-        self.solve_impl()
+        self.solve_impl::<Picker, Brancher>()
     }
 
     /// Performs search and returns the assignment that minimizes the provided objective variable.
     #[must_use]
     pub fn minimize(&self, obj: VarId) -> Option<Solution> {
-        self.minimize_impl(obj.into())
+        self.minimize_impl::<Picker, Brancher>(obj.into())
     }
 
     /// Performs search and returns the assignment that maximizes the provided objective variable.
     #[must_use]
     pub fn maximize(self, obj: VarId) -> Option<Solution> {
-        self.maximize_impl(obj.into())
+        self.maximize_impl::<Picker, Brancher>(obj.into())
     }
 }

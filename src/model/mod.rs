@@ -9,6 +9,8 @@ mod wasm;
 use std::cmp::Ordering;
 
 use crate::props::{self, PropId, Propagate, Props};
+use crate::search::branch::Branch;
+use crate::search::pick::Pick;
 use crate::search::{backlog, Deps, Searcher};
 use crate::solution::Solution;
 use crate::vars::{Var, VarId};
@@ -192,25 +194,25 @@ impl Model {
         self.props.custom.push(prop);
     }
 
-    fn solve_impl(&mut self) -> Option<Solution> {
+    fn solve_impl<P: Pick, B: Branch>(&mut self) -> Option<Solution> {
         // ? Dummy decision variable to use generic search logic
         let obj = self.cst_impl(0);
 
-        self.search(obj, true)
+        self.search::<P, B>(obj, true)
     }
 
-    fn minimize_impl(&self, obj: VarId) -> Option<Solution> {
-        self.search(obj, false)
+    fn minimize_impl<P: Pick, B: Branch>(&self, obj: VarId) -> Option<Solution> {
+        self.search::<P, B>(obj, false)
     }
 
-    fn maximize_impl(mut self, obj: VarId) -> Option<Solution> {
+    fn maximize_impl<P: Pick, B: Branch>(mut self, obj: VarId) -> Option<Solution> {
         let obj_opposite = self.scale_impl(obj, -1);
 
-        self.minimize_impl(obj_opposite)
+        self.minimize_impl::<P, B>(obj_opposite)
     }
 
-    fn search(&self, obj: VarId, stop_on_feasibility: bool) -> Option<Solution> {
-        Searcher::new(&self.deps, obj, stop_on_feasibility)
-            .search::<backlog::Stack, crate::search::pick::FirstUnset, crate::search::branch::SetMinToMax>(&self.vars, &self.props)
+    fn search<P: Pick, B: Branch>(&self, ob: VarId, stop_on_feasibility: bool) -> Option<Solution> {
+        Searcher::new(&self.deps, ob, stop_on_feasibility)
+            .search::<backlog::Stack, P, B>(&self.vars, &self.props)
     }
 }
