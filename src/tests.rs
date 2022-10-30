@@ -44,6 +44,19 @@ fn eq() {
 }
 
 #[test]
+fn leq() {
+    let mut m = Model::default();
+
+    let x = m.new_var(0, 9);
+
+    m.leq(x, 5);
+
+    let solution = m.maximize(x).unwrap();
+
+    assert_eq!(solution[x], 5);
+}
+
+#[test]
 fn solve() {
     let mut m = Model::default();
 

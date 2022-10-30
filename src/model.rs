@@ -144,6 +144,19 @@ impl Model {
         self.deps.vars[*y].push(id);
     }
 
+    /// Enforces constraint `x` <= `y`.
+    pub fn leq(&mut self, x: impl IntoVarId, y: impl IntoVarId) {
+        let (x, y) = (x.into_var_id(self), y.into_var_id(self));
+
+        let id = PropId::Leq(self.props.leq.len());
+
+        self.props.leq.push(props::PropLeq);
+
+        self.deps.props.leq.push((x, y));
+        self.deps.vars[*x].push(id);
+        self.deps.vars[*y].push(id);
+    }
+
     /// Performs search and returns the first assignment found that satisfies all constraints.
     #[must_use]
     pub fn solve(&mut self) -> Option<Solution> {

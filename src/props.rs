@@ -20,6 +20,7 @@ pub enum PropId {
     Plus(usize),
     Sum(usize),
     Eq(usize),
+    Leq(usize),
 }
 
 /// Helper type to group propagators by type.
@@ -30,6 +31,7 @@ pub struct Props {
     pub plus: Vec<PropPlus>,
     pub sum: Vec<PropSum>,
     pub eq: Vec<PropEq>,
+    pub leq: Vec<PropLeq>,
 }
 
 /// Scaling factor constraint with a positive coefficient.
@@ -177,6 +179,30 @@ impl Propagate for PropEq {
         } else {
             vars.set_min_and_max(x, min, max);
             vars.set_min_and_max(y, min, max);
+
+            Some(vars)
+        }
+    }
+}
+
+/// Equality constraint between two variables.
+#[derive(Clone, Debug)]
+pub struct PropLeq;
+
+impl Propagate for PropLeq {
+    type Deps = (VarId, VarId);
+
+    fn propagate(&mut self, deps: &Self::Deps, mut vars: Vars) -> Option<Vars> {
+        let (x, y) = *deps;
+
+        let (var_x, var_y) = (&vars[x], &vars[y]);
+
+        let max = min_of(var_x.max, var_y.max);
+
+        if var_x.min > max {
+            None
+        } else {
+            vars.set_max(x, max);
 
             Some(vars)
         }

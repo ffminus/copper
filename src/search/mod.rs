@@ -47,6 +47,7 @@ impl<'s> Searcher<'s> {
             .chain((0..props.plus.len()).map(PropId::Plus))
             .chain((0..props.sum.len()).map(PropId::Sum))
             .chain((0..props.eq.len()).map(PropId::Eq))
+            .chain((0..props.leq.len()).map(PropId::Leq))
             .collect();
 
         self.propagate(space, agenda)
@@ -81,6 +82,7 @@ impl<'s> Searcher<'s> {
                 }
                 PropId::Sum(i) => space.props.sum[i].propagate(&self.deps.props.sum[i], space.vars),
                 PropId::Eq(i) => space.props.eq[i].propagate(&self.deps.props.eq[i], space.vars),
+                PropId::Leq(i) => space.props.leq[i].propagate(&self.deps.props.leq[i], space.vars),
             };
 
             // Mutated variable domains returned if space is not failed by propagator
@@ -150,4 +152,5 @@ pub struct DepsProps {
     pub plus: Vec<<props::PropPlus as Propagate>::Deps>,
     pub sum: Vec<<props::PropSum as Propagate>::Deps>,
     pub eq: Vec<<props::PropEq as Propagate>::Deps>,
+    pub leq: Vec<<props::PropLeq as Propagate>::Deps>,
 }
