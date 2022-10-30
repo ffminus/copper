@@ -28,8 +28,14 @@ impl Backlog for Stack {
         while let Some((branch, space)) = backlog.tasks.pop() {
             let space = (*space).clone();
 
+            // Provide current best objective value to allow for additional pruning
+            let obj_opt = backlog
+                .solution
+                .as_ref()
+                .map(|solution| solution[searcher.obj]);
+
             // No additional searching required for failed spaces
-            if let Ok(propagated) = searcher.branch(&branch, space) {
+            if let Ok(propagated) = searcher.branch(&branch, obj_opt, space) {
                 match propagated {
                     Propagated::Fixed(space) => backlog.push_branches(space),
                     Propagated::Done(candidate) => {
