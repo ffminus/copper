@@ -5,6 +5,7 @@
     clippy::cargo,
     clippy::nursery,
     clippy::pedantic,
+    missing_docs,
     single_use_lifetimes,
     trivial_casts,
     trivial_numeric_casts,
