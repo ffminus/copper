@@ -1,0 +1,5 @@
+# Exact version of dependencies
+/Cargo.lock
+
+# Build artifacts
+/target
