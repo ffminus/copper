@@ -33,6 +33,11 @@ impl Propagators {
         self.dependencies.push(Vec::new());
     }
 
+    /// List ids of all registered propagators.
+    pub fn get_prop_ids_iter(&self) -> impl Iterator<Item = PropId> {
+        (0..self.state.len()).map(PropId)
+    }
+
     /// Declare a new propagator to enforce `x <= y`.
     pub fn less_than_or_equals(&mut self, x: impl View, y: impl View) -> PropId {
         self.push_new_prop(self::leq::LessThanOrEquals::new(x, y))
