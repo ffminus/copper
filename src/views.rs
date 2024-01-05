@@ -103,6 +103,62 @@ pub(crate) trait ViewRaw: Copy + core::fmt::Debug + 'static {
     fn max_raw(self, vars: &Vars) -> i32;
 }
 
+impl ViewRaw for i32 {
+    fn get_underlying_var_raw(self) -> Option<VarId> {
+        None
+    }
+
+    fn min_raw(self, _vars: &Vars) -> i32 {
+        self
+    }
+
+    fn max_raw(self, _vars: &Vars) -> i32 {
+        self
+    }
+}
+
+impl View for i32 {
+    fn try_set_min(self, min: i32, _ctx: &mut Context) -> Option<i32> {
+        if min <= self {
+            Some(min)
+        } else {
+            None
+        }
+    }
+
+    fn try_set_max(self, max: i32, _ctx: &mut Context) -> Option<i32> {
+        if max >= self {
+            Some(max)
+        } else {
+            None
+        }
+    }
+}
+
+impl ViewRaw for VarId {
+    fn get_underlying_var_raw(self) -> Option<VarId> {
+        Some(self)
+    }
+
+    fn min_raw(self, vars: &Vars) -> i32 {
+        vars[self].min
+    }
+
+    fn max_raw(self, vars: &Vars) -> i32 {
+        vars[self].max
+    }
+}
+
+impl View for VarId {
+    fn try_set_min(self, min: i32, ctx: &mut Context) -> Option<i32> {
+        ctx.try_set_min(self, min)
+    }
+
+    fn try_set_max(self, max: i32, ctx: &mut Context) -> Option<i32> {
+        ctx.try_set_max(self, max)
+    }
+}
+
 /// Add a constant offset to the underlying view.
 #[derive(Clone, Copy, Debug)]
 pub struct Plus<V> {
