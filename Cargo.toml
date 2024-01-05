@@ -28,6 +28,8 @@ unescaped_backticks      = "warn"
 [lints.rust]
 rust-2021-compatibility = "warn"
 
+unsafe_code = "forbid"
+
 absolute_paths_not_starting_with_crate = "warn"
 explicit_outlives_requirements         = "warn"
 ffi_unwind_calls                       = "warn"
