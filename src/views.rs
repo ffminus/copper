@@ -90,3 +90,34 @@ pub(crate) trait ViewRaw: Copy + core::fmt::Debug + 'static {
     /// Access domain maximum.
     fn max_raw(self, vars: &Vars) -> i32;
 }
+
+/// Add a constant offset to the underlying view.
+#[derive(Clone, Copy, Debug)]
+pub struct Plus<V> {
+    x: V,
+    offset: i32,
+}
+
+impl<V: View> ViewRaw for Plus<V> {
+    fn get_underlying_var_raw(self) -> Option<VarId> {
+        self.x.get_underlying_var_raw()
+    }
+
+    fn min_raw(self, vars: &Vars) -> i32 {
+        self.x.min_raw(vars) + self.offset
+    }
+
+    fn max_raw(self, vars: &Vars) -> i32 {
+        self.x.max_raw(vars) + self.offset
+    }
+}
+
+impl<V: View> View for Plus<V> {
+    fn try_set_min(self, min: i32, ctx: &mut Context) -> Option<i32> {
+        self.x.try_set_min(min - self.offset, ctx)
+    }
+
+    fn try_set_max(self, max: i32, ctx: &mut Context) -> Option<i32> {
+        self.x.try_set_max(max - self.offset, ctx)
+    }
+}
