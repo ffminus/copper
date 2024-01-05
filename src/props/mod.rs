@@ -1,4 +1,4 @@
-use dyn_clone::DynClone;
+use dyn_clone::{clone_trait_object, DynClone};
 
 use crate::vars::VarId;
 use crate::views::Context;
@@ -14,6 +14,9 @@ pub trait Propagate: Prune + 'static {
     /// List variables that schedule the propagator when their domain changes.
     gen fn list_trigger_vars(&self) -> VarId;
 }
+
+// ? State of propagators is cloned during search, but trait objects cannot be `Clone` by default
+clone_trait_object!(Prune);
 
 /// Store internal state for each propagators, along with dependencies for when to schedule each.
 #[derive(Clone, Debug, Default)]
