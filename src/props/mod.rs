@@ -21,6 +21,7 @@ clone_trait_object!(Prune);
 /// Store internal state for each propagators, along with dependencies for when to schedule each.
 #[derive(Clone, Debug, Default)]
 pub struct Propagators {
+    state: Vec<Box<dyn Prune>>,
     dependencies: Vec<Vec<PropId>>,
 }
 
@@ -28,6 +29,22 @@ impl Propagators {
     /// Extend dependencies matrix with a row for the new decision variable.
     pub fn on_new_var(&mut self) {
         self.dependencies.push(Vec::new());
+    }
+
+    /// Register propagator dependencies and store its state as a trait object.
+    fn push_new_prop(&mut self, state: impl Propagate) -> PropId {
+        // Create new handle to refer to propagator state and dependencies
+        let p = PropId(self.state.len());
+
+        // Register dependencies listed by trait implementor
+        for v in state.list_trigger_vars() {
+            self.dependencies[v].push(p);
+        }
+
+        // Store propagator state as trait object
+        self.state.push(Box::new(state));
+
+        p
     }
 }
 
