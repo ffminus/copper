@@ -5,5 +5,8 @@ mod model;
 mod props;
 mod vars;
 
+#[cfg(test)]
+mod tests;
+
 pub use crate::model::Model;
 pub use crate::vars::VarId;
