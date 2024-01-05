@@ -1,8 +1,10 @@
+cargo-features = ["edition2024"]
+
 [package]
 name         = "copper"
 version      = "0.0.1"
 authors      = ["ffminus <ffminus@protonmail.com>"]
-edition      = "2021"
+edition      = "2024"
 rust-version = "1.77"
 description  = "A constraint programming solver."
 readme       = "README.md"
