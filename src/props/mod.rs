@@ -1,5 +1,7 @@
 mod leq;
 
+use core::ops::{Index, IndexMut};
+
 use dyn_clone::{clone_trait_object, DynClone};
 
 use crate::vars::VarId;
@@ -36,6 +38,11 @@ impl Propagators {
     /// List ids of all registered propagators.
     pub fn get_prop_ids_iter(&self) -> impl Iterator<Item = PropId> {
         (0..self.state.len()).map(PropId)
+    }
+
+    /// Acquire mutable reference to propagator state.
+    pub fn get_state_mut(&mut self, p: PropId) -> &mut Box<dyn Prune> {
+        &mut self.state[p]
     }
 
     /// Declare a new propagator to enforce `x <= y`.
@@ -78,3 +85,17 @@ impl Propagators {
 /// Propagator handle that is not bound to a specific memory location.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct PropId(usize);
+
+impl Index<PropId> for Vec<Box<dyn Prune>> {
+    type Output = Box<dyn Prune>;
+
+    fn index(&self, index: PropId) -> &Self::Output {
+        &self[index.0]
+    }
+}
+
+impl IndexMut<PropId> for Vec<Box<dyn Prune>> {
+    fn index_mut(&mut self, index: PropId) -> &mut Self::Output {
+        &mut self[index.0]
+    }
+}
