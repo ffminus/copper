@@ -20,6 +20,9 @@ cargo    = "warn"
 nursery  = "warn"
 pedantic = "warn"
 
+doc_markdown       = { level = "allow", priority = 1 }
+option_if_let_else = { level = "allow", priority = 1 }
+
 [lints.rustdoc]
 missing_crate_level_docs = "warn"
 private_doc_tests        = "warn"
