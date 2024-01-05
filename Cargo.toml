@@ -15,6 +15,7 @@ categories   = ["constraint programming"]
 
 
 [dependencies]
+dyn-clone = "1.0" # Clone trait objects
 
 
 [lints.clippy]
