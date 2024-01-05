@@ -1,6 +1,7 @@
 use core::ops::{Index, IndexMut};
 
 use crate::props::PropId;
+use crate::solution::Solution;
 
 /// Domain for a decision variable, tracked as an interval of integers.
 #[derive(Clone, Debug)]
@@ -18,6 +19,17 @@ impl Var {
     /// Midpoint of domain for easier binary splits.
     pub const fn mid(&self) -> i32 {
         self.min + (self.max - self.min) / 2
+    }
+
+    /// Extract assignment for decision variable.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if the decision variable is not assigned.
+    pub const fn get_assignment(&self) -> i32 {
+        assert!(self.is_assigned());
+
+        self.min
     }
 }
 
@@ -43,6 +55,18 @@ impl Vars {
     /// Determine if all decision variables are assigned.
     pub fn is_assigned_all(&self) -> bool {
         self.get_unassigned_var().is_none()
+    }
+
+    /// Extract assignment for all decision variables.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if any decision variables are not assigned.
+    pub fn into_solution(self) -> Solution {
+        // Extract values for each decision variable
+        let values: Vec<_> = self.0.into_iter().map(|v| v.get_assignment()).collect();
+
+        Solution::from(values)
     }
 }
 
