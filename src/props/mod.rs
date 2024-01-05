@@ -3,7 +3,7 @@ mod leq;
 use dyn_clone::{clone_trait_object, DynClone};
 
 use crate::vars::VarId;
-use crate::views::{Context, View};
+use crate::views::{Context, View, ViewExt};
 
 /// Enforce a specific constraint by pruning domain of decision variables.
 pub trait Prune: core::fmt::Debug + DynClone {
@@ -36,6 +36,21 @@ impl Propagators {
     /// Declare a new propagator to enforce `x <= y`.
     pub fn less_than_or_equals(&mut self, x: impl View, y: impl View) -> PropId {
         self.push_new_prop(self::leq::LessThanOrEquals::new(x, y))
+    }
+
+    /// Declare a new propagator to enforce `x < y`.
+    pub fn less_than(&mut self, x: impl View, y: impl View) -> PropId {
+        self.less_than_or_equals(x.plus(1), y)
+    }
+
+    /// Declare a new propagator to enforce `x >= y`.
+    pub fn greater_than_or_equals(&mut self, x: impl View, y: impl View) -> PropId {
+        self.less_than_or_equals(y, x)
+    }
+
+    /// Declare a new propagator to enforce `x > y`.
+    pub fn greater_than(&mut self, x: impl View, y: impl View) -> PropId {
+        self.greater_than_or_equals(x, y.plus(1))
     }
 
     /// Register propagator dependencies and store its state as a trait object.
