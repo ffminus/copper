@@ -48,7 +48,12 @@ pub struct Context<'s> {
     events: &'s mut Vec<VarId>,
 }
 
-impl Context<'_> {
+impl<'s> Context<'s> {
+    /// Initialize context from mutable references to outside objects.
+    pub(crate) fn new(vars: &'s mut Vars, events: &'s mut Vec<VarId>) -> Self {
+        Self { vars, events }
+    }
+
     /// Try to set provided value as domain maximum, failing the space on infeasibility.
     pub fn try_set_min(&mut self, v: VarId, min: i32) -> Option<i32> {
         // Access domain of variable using the provided handle
