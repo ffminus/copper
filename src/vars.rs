@@ -14,6 +14,11 @@ impl Var {
     pub const fn is_assigned(&self) -> bool {
         self.min == self.max
     }
+
+    /// Midpoint of domain for easier binary splits.
+    pub const fn mid(&self) -> i32 {
+        self.min + (self.max - self.min) / 2
+    }
 }
 
 /// Store decision variables and expose a limited interface to operate on them.
