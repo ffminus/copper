@@ -1,4 +1,5 @@
 mod agenda;
+mod branch;
 
 use crate::props::Propagators;
 use crate::vars::Vars;
