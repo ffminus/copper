@@ -9,6 +9,13 @@ pub struct Var {
     pub max: i32,
 }
 
+impl Var {
+    /// Assigned variables have a domain reduced to a singleton.
+    pub const fn is_assigned(&self) -> bool {
+        self.min == self.max
+    }
+}
+
 /// Store decision variables and expose a limited interface to operate on them.
 #[derive(Clone, Debug, Default)]
 pub struct Vars(Vec<Var>);
@@ -21,6 +28,16 @@ impl Vars {
         self.0.push(Var { min, max });
 
         v
+    }
+
+    /// Get handle to an unassigned decision variable.
+    pub fn get_unassigned_var(&self) -> Option<VarId> {
+        self.0.iter().position(|var| !var.is_assigned()).map(VarId)
+    }
+
+    /// Determine if all decision variables are assigned.
+    pub fn is_assigned_all(&self) -> bool {
+        self.get_unassigned_var().is_none()
     }
 }
 
