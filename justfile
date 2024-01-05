@@ -8,3 +8,7 @@ check:
     cargo clippy --tests -- --deny warnings
     cargo check --tests
     RUSTDOCFLAGS='--deny warnings' cargo doc
+
+# run code quality and logic checks
+ci: check
+    cargo test
