@@ -29,6 +29,18 @@ pub trait View: ViewRaw {
     fn try_set_max(self, max: i32, ctx: &mut Context) -> Option<i32>;
 }
 
+/// Extension trait to provide helper methods on views.
+pub trait ViewExt: View {
+    /// Add a constant offset to the underlying view.
+    fn plus(self, offset: i32) -> Plus<Self>;
+}
+
+impl<V: View> ViewExt for V {
+    fn plus(self, offset: i32) -> Plus<Self> {
+        Plus { x: self, offset }
+    }
+}
+
 /// Wrapper around search space object to restrict exposed interface and track changes.
 #[derive(Debug)]
 pub struct Context<'s> {
