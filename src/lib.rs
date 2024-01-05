@@ -8,10 +8,12 @@ pub mod views;
 
 mod model;
 mod props;
+mod solution;
 mod vars;
 
 #[cfg(test)]
 mod tests;
 
 pub use crate::model::Model;
+pub use crate::solution::Solution;
 pub use crate::vars::VarId;

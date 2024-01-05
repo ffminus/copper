@@ -42,6 +42,20 @@ impl IndexMut<VarId> for Vars {
     }
 }
 
+impl Index<VarId> for Vec<i32> {
+    type Output = i32;
+
+    fn index(&self, index: VarId) -> &Self::Output {
+        &self[index.0]
+    }
+}
+
+impl IndexMut<VarId> for Vec<i32> {
+    fn index_mut(&mut self, index: VarId) -> &mut Self::Output {
+        &mut self[index.0]
+    }
+}
+
 impl Index<VarId> for Vec<Vec<PropId>> {
     type Output = Vec<PropId>;
 
