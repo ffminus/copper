@@ -1,3 +1,7 @@
+use core::ops::{Index, IndexMut};
+
+use crate::props::PropId;
+
 /// Domain for a decision variable, tracked as an interval of integers.
 #[derive(Clone, Debug)]
 pub struct Var {
@@ -23,3 +27,17 @@ impl Vars {
 /// Decision variable handle that is not bound to a specific memory location.
 #[derive(Clone, Copy, Debug)]
 pub struct VarId(usize);
+
+impl Index<VarId> for Vars {
+    type Output = Var;
+
+    fn index(&self, index: VarId) -> &Self::Output {
+        &self.0[index.0]
+    }
+}
+
+impl IndexMut<VarId> for Vars {
+    fn index_mut(&mut self, index: VarId) -> &mut Self::Output {
+        &mut self.0[index.0]
+    }
+}
