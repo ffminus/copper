@@ -10,6 +10,7 @@ Emoji prefixes follow the [gitmoji](https://gitmoji.dev/) guide.
 
 ### Added
 
+- 🚸 Make propagators more generic using views
 - 🔨 Harden [clippy](https://github.com/rust-lang/rust-clippy) configuration
 - 🔨 Declare common commands as [just](https://github.com/casey/just) recipes
 - 📄 License code under MIT
