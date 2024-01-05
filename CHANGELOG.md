@@ -8,4 +8,8 @@ Emoji prefixes follow the [gitmoji](https://gitmoji.dev/) guide.
 
 ## [Unreleased]
 
+### Added
+
+- 📄 License code under MIT
+
 [unreleased]: https://github.com/ffminus/copper
