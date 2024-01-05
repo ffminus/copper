@@ -45,6 +45,11 @@ impl Propagators {
         &mut self.state[p]
     }
 
+    /// Get list of propagators that should be scheduled when a bound of variable `v` changes.
+    pub fn on_bound_change(&self, v: VarId) -> impl Iterator<Item = PropId> {
+        self.dependencies[v].iter().copied()
+    }
+
     /// Declare a new propagator to enforce `x <= y`.
     pub fn less_than_or_equals(&mut self, x: impl View, y: impl View) -> PropId {
         self.push_new_prop(self::leq::LessThanOrEquals::new(x, y))
