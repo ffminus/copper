@@ -10,6 +10,7 @@ Emoji prefixes follow the [gitmoji](https://gitmoji.dev/) guide.
 
 ### Added
 
+- 🔨 Harden [clippy](https://github.com/rust-lang/rust-clippy) configuration
 - 📄 License code under MIT
 
 [unreleased]: https://github.com/ffminus/copper

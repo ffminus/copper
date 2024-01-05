@@ -13,3 +13,41 @@ categories   = ["constraint programming"]
 
 
 [dependencies]
+
+
+[lints.clippy]
+cargo    = "warn"
+nursery  = "warn"
+pedantic = "warn"
+
+[lints.rustdoc]
+missing_crate_level_docs = "warn"
+private_doc_tests        = "warn"
+unescaped_backticks      = "warn"
+
+[lints.rust]
+rust-2021-compatibility = "warn"
+
+absolute_paths_not_starting_with_crate = "warn"
+explicit_outlives_requirements         = "warn"
+ffi_unwind_calls                       = "warn"
+keyword_idents                         = "warn"
+let_underscore_drop                    = "warn"
+macro_use_extern_crate                 = "warn"
+meta_variable_misuse                   = "warn"
+missing_abi                            = "warn"
+missing_docs                           = "warn"
+non_ascii_idents                       = "warn"
+pointer_structural_match               = "warn"
+single_use_lifetimes                   = "warn"
+trivial_casts                          = "warn"
+trivial_numeric_casts                  = "warn"
+unsafe_op_in_unsafe_fn                 = "warn"
+unused_extern_crates                   = "warn"
+unused_import_braces                   = "warn"
+unused_lifetimes                       = "warn"
+unused_macro_rules                     = "warn"
+unused_qualifications                  = "warn"
+unused_results                         = "warn"
+unused_tuple_struct_fields             = "warn"
+variant_size_differences               = "warn"
