@@ -8,6 +8,7 @@ pub mod views;
 
 mod model;
 mod props;
+mod search;
 mod solution;
 mod vars;
 
