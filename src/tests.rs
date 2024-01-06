@@ -24,3 +24,21 @@ fn enumerate() {
 
     assert_eq!(solutions, expected);
 }
+
+#[test]
+fn minimize() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    assert_eq!(m.minimize(x).unwrap()[x], -7);
+}
+
+#[test]
+fn maximize() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    assert_eq!(m.maximize(x).unwrap()[x], 9);
+}

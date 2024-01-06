@@ -2,6 +2,7 @@ use crate::props::Propagators;
 use crate::search::{mode, search};
 use crate::solution::Solution;
 use crate::vars::{VarId, Vars};
+use crate::views::{View, ViewExt};
 
 /// Library entry point used to declare decision variables and constraints, and configure search.
 #[derive(Debug, Default)]
@@ -31,6 +32,32 @@ impl Model {
     fn new_var_unchecked(&mut self, min: i32, max: i32) -> VarId {
         self.props.on_new_var();
         self.vars.new_var_with_bounds(min, max)
+    }
+
+    /// Find assignment that minimizes objective expression while satisfying all constraints.
+    #[must_use]
+    pub fn minimize(self, objective: impl View) -> Option<Solution> {
+        self.minimize_and_iterate(objective).last()
+    }
+
+    /// Enumerate assignments that satisfy all constraints, while minimizing objective expression.
+    ///
+    /// The order in which assignments are yielded is not stable.
+    pub fn minimize_and_iterate(self, objective: impl View) -> impl Iterator<Item = Solution> {
+        search(self.vars, self.props, mode::Minimize::new(objective))
+    }
+
+    /// Find assignment that maximizes objective expression while satisfying all constraints.
+    #[must_use]
+    pub fn maximize(self, objective: impl View) -> Option<Solution> {
+        self.minimize(objective.opposite())
+    }
+
+    /// Enumerate assignments that satisfy all constraints, while maximizing objective expression.
+    ///
+    /// The order in which assignments are yielded is not stable.
+    pub fn maximize_and_iterate(self, objective: impl View) -> impl Iterator<Item = Solution> {
+        self.minimize_and_iterate(objective.opposite())
     }
 
     /// Search for assignment that satisfies all constraints within bounds of decision variables.
