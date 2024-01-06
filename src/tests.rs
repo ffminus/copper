@@ -67,6 +67,28 @@ fn opposite_of_opposite() {
 }
 
 #[test]
+fn plus() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.plus(5), 7);
+
+    assert_eq!(m.solve().unwrap()[x], 2);
+}
+
+#[test]
+fn plus_unfeasible() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.plus(10), 1);
+
+    assert!(m.solve().is_none());
+}
+
+#[test]
 fn equals() {
     let mut m = Model::default();
 
