@@ -31,11 +31,18 @@ pub trait View: ViewRaw {
 
 /// Extension trait to provide helper methods on views.
 pub trait ViewExt: View {
+    /// Invert the sign of the bounds of the underlying view.
+    fn opposite(self) -> Opposite<Self>;
+
     /// Add a constant offset to the underlying view.
     fn plus(self, offset: i32) -> Plus<Self>;
 }
 
 impl<V: View> ViewExt for V {
+    fn opposite(self) -> Opposite<Self> {
+        Opposite(self)
+    }
+
     fn plus(self, offset: i32) -> Plus<Self> {
         Plus { x: self, offset }
     }
@@ -161,6 +168,34 @@ impl View for VarId {
 
     fn try_set_max(self, max: i32, ctx: &mut Context) -> Option<i32> {
         ctx.try_set_max(self, max)
+    }
+}
+
+/// Invert the sign of the bounds of the underlying view.
+#[derive(Clone, Copy, Debug)]
+pub struct Opposite<V>(V);
+
+impl<V: View> ViewRaw for Opposite<V> {
+    fn get_underlying_var_raw(self) -> Option<VarId> {
+        self.0.get_underlying_var_raw()
+    }
+
+    fn min_raw(self, vars: &Vars) -> i32 {
+        -self.0.max_raw(vars)
+    }
+
+    fn max_raw(self, vars: &Vars) -> i32 {
+        -self.0.min_raw(vars)
+    }
+}
+
+impl<V: View> View for Opposite<V> {
+    fn try_set_min(self, min: i32, ctx: &mut Context) -> Option<i32> {
+        self.0.try_set_max(-min, ctx)
+    }
+
+    fn try_set_max(self, max: i32, ctx: &mut Context) -> Option<i32> {
+        self.0.try_set_min(-max, ctx)
     }
 }
 
