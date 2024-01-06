@@ -11,6 +11,15 @@ fn new_var() {
 }
 
 #[test]
+fn new_vars() {
+    let mut m = Model::default();
+
+    assert!(m.new_vars(5, 1, 1).is_none());
+    assert!(m.new_vars(5, 1, 0).is_none());
+    assert!(m.new_vars(5, 0, 1).is_some());
+}
+
+#[test]
 fn enumerate() {
     let mut m = Model::default();
 

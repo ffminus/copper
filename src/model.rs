@@ -24,6 +24,24 @@ impl Model {
         }
     }
 
+    /// Create new integer decision variables, with the provided domain bounds.
+    ///
+    /// All created variables will have the same starting domain bounds.
+    /// Both lower and upper bounds are included in the domain.
+    /// This function will only create decision variables if `min < max`.
+    pub fn new_vars(
+        &mut self,
+        n: usize,
+        min: i32,
+        max: i32,
+    ) -> Option<impl Iterator<Item = VarId>> {
+        if min < max {
+            Some(core::iter::repeat_with(move || self.new_var_unchecked(min, max)).take(n))
+        } else {
+            None
+        }
+    }
+
     /// Create a new integer decision variable, with the provided domain bounds.
     ///
     /// Both lower and upper bounds are included in the domain.
