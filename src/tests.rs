@@ -1,3 +1,4 @@
+use crate::views::ViewExt;
 use crate::{Model, Solution};
 
 #[test]
@@ -41,6 +42,28 @@ fn maximize() {
     let x = m.new_var(-7, 9).unwrap();
 
     assert_eq!(m.maximize(x).unwrap()[x], 9);
+}
+
+#[test]
+fn opposite() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.opposite(), 5);
+
+    assert_eq!(m.solve().unwrap()[x], -5);
+}
+
+#[test]
+fn opposite_of_opposite() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.opposite().opposite(), 6);
+
+    assert_eq!(m.solve().unwrap()[x], 6);
 }
 
 #[test]
