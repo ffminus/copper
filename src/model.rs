@@ -1,5 +1,5 @@
 use crate::props::Propagators;
-use crate::search::search;
+use crate::search::{mode, search};
 use crate::solution::Solution;
 use crate::vars::{VarId, Vars};
 
@@ -37,6 +37,6 @@ impl Model {
     ///
     /// The order in which assignments are yielded is not stable.
     pub fn enumerate(self) -> impl Iterator<Item = Solution> {
-        search(self.vars, self.props)
+        search(self.vars, self.props, mode::Enumerate)
     }
 }

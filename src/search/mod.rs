@@ -1,3 +1,5 @@
+pub mod mode;
+
 mod agenda;
 mod branch;
 
@@ -7,6 +9,7 @@ use crate::vars::Vars;
 use crate::views::Context;
 
 use self::agenda::Agenda;
+use self::mode::Mode;
 
 /// Data required to perform search, copied on branch and discarded on failure.
 #[derive(Clone, Debug)]
@@ -16,7 +19,7 @@ pub struct Space {
 }
 
 /// Perform search, iterating over assignments that satisfy all constraints.
-pub gen fn search(vars: Vars, props: Propagators) -> Solution {
+pub gen fn search(vars: Vars, props: Propagators, mode: impl Mode) -> Solution {
     // Schedule all propagators during initial propagation step
     let agenda = Agenda::with_props(props.get_prop_ids_iter());
 
@@ -24,7 +27,7 @@ pub gen fn search(vars: Vars, props: Propagators) -> Solution {
     if let Some((is_stalled, space)) = propagate(Space { vars, props }, agenda) {
         if is_stalled {
             // Explore space by alternating branching and propagation
-            for solution in search_with_branching(space) {
+            for solution in search_with_branching(space, mode) {
                 yield solution;
             }
         } else {
@@ -35,7 +38,7 @@ pub gen fn search(vars: Vars, props: Propagators) -> Solution {
 }
 
 /// Explore search tree, leveraging propagators to prune domains.
-gen fn search_with_branching(space: Space) -> Solution {
+gen fn search_with_branching(space: Space, mut mode: impl Mode) -> Solution {
     // Branching strategy when search is stalled
     let get_branch_iter = branch::split_on_unassigned;
 
@@ -43,9 +46,9 @@ gen fn search_with_branching(space: Space) -> Solution {
     let mut stack = vec![get_branch_iter(space)];
 
     while let Some(mut branch_iter) = stack.pop() {
-        while let Some((space, p)) = branch_iter.next() {
+        while let Some((mut space, p)) = branch_iter.next() {
             // Schedule propagator triggered by the branch
-            let agenda = Agenda::with_props(core::iter::once(p));
+            let agenda = Agenda::with_props(mode.on_branch(&mut space).chain(core::iter::once(p)));
 
             // Failed spaces are discarded, fixed points get explored further (depth-first search)
             if let Some((is_stalled, space)) = propagate(space, agenda) {
@@ -56,6 +59,9 @@ gen fn search_with_branching(space: Space) -> Solution {
                     // Branch on new space, to explore it further
                     branch_iter = get_branch_iter(space);
                 } else {
+                    // Mode object may update its internal state when new solutions are found
+                    mode.on_solution(&space.vars);
+
                     // Extract solution assignment for all decision variables
                     yield space.vars.into_solution();
                 }
