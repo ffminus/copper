@@ -115,3 +115,7 @@ impl IndexMut<VarId> for Vec<Vec<PropId>> {
         &mut self[index.0]
     }
 }
+
+/// Wrapper to provide specific helper methods for binary decision variables.
+#[derive(Clone, Copy, Debug)]
+pub struct VarIdBinary(pub(crate) VarId);

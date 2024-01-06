@@ -1,4 +1,4 @@
-use crate::vars::{VarId, Vars};
+use crate::vars::{VarId, VarIdBinary, Vars};
 
 /// Apply simple domain transformations on the fly to make propagators more generic.
 #[allow(private_bounds)]
@@ -197,6 +197,30 @@ impl View for VarId {
 
     fn try_set_max(self, max: i32, ctx: &mut Context) -> Option<i32> {
         ctx.try_set_max(self, max)
+    }
+}
+
+impl ViewRaw for VarIdBinary {
+    fn get_underlying_var_raw(self) -> Option<VarId> {
+        self.0.get_underlying_var_raw()
+    }
+
+    fn min_raw(self, vars: &Vars) -> i32 {
+        self.0.min_raw(vars)
+    }
+
+    fn max_raw(self, vars: &Vars) -> i32 {
+        self.0.max_raw(vars)
+    }
+}
+
+impl View for VarIdBinary {
+    fn try_set_min(self, min: i32, ctx: &mut Context) -> Option<i32> {
+        self.0.try_set_min(min, ctx)
+    }
+
+    fn try_set_max(self, max: i32, ctx: &mut Context) -> Option<i32> {
+        self.0.try_set_max(max, ctx)
     }
 }
 

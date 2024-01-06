@@ -1,7 +1,7 @@
 use crate::props::Propagators;
 use crate::search::{mode, search};
 use crate::solution::Solution;
-use crate::vars::{VarId, Vars};
+use crate::vars::{VarId, VarIdBinary, Vars};
 use crate::views::{View, ViewExt};
 
 /// Library entry point used to declare decision variables and constraints, and configure search.
@@ -40,6 +40,16 @@ impl Model {
         } else {
             None
         }
+    }
+
+    /// Create a new binary decision variable.
+    pub fn new_var_binary(&mut self) -> VarIdBinary {
+        VarIdBinary(self.new_var_unchecked(0, 1))
+    }
+
+    /// Create new binary decision variables.
+    pub fn new_vars_binary(&mut self, n: usize) -> impl Iterator<Item = VarIdBinary> {
+        core::iter::repeat_with(|| self.new_var_binary()).take(n)
     }
 
     /// Create a new integer decision variable, with the provided domain bounds.
