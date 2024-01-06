@@ -36,6 +36,13 @@ pub trait ViewExt: View {
 
     /// Add a constant offset to the underlying view.
     fn plus(self, offset: i32) -> Plus<Self>;
+
+    /// Scale the underlying view by a strictly positive constant factor.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if the provided scale is not strictly positive.
+    fn times_pos(self, scale_pos: i32) -> TimesPos<Self>;
 }
 
 impl<V: View> ViewExt for V {
@@ -45,6 +52,10 @@ impl<V: View> ViewExt for V {
 
     fn plus(self, offset: i32) -> Plus<Self> {
         Plus { x: self, offset }
+    }
+
+    fn times_pos(self, scale_pos: i32) -> TimesPos<Self> {
+        TimesPos::new(self, scale_pos)
     }
 }
 
@@ -227,5 +238,43 @@ impl<V: View> View for Plus<V> {
 
     fn try_set_max(self, max: i32, ctx: &mut Context) -> Option<i32> {
         self.x.try_set_max(max - self.offset, ctx)
+    }
+}
+
+/// Scale the underlying view by a strictly positive constant factor.
+#[derive(Clone, Copy, Debug)]
+pub struct TimesPos<V> {
+    x: V,
+    scale_pos: i32,
+}
+
+impl<V: View> TimesPos<V> {
+    const fn new(x: V, scale_pos: i32) -> Self {
+        assert!(scale_pos > 0);
+        Self { x, scale_pos }
+    }
+}
+
+impl<V: View> ViewRaw for TimesPos<V> {
+    fn get_underlying_var_raw(self) -> Option<VarId> {
+        self.x.get_underlying_var_raw()
+    }
+
+    fn min_raw(self, vars: &Vars) -> i32 {
+        self.x.min_raw(vars) * self.scale_pos
+    }
+
+    fn max_raw(self, vars: &Vars) -> i32 {
+        self.x.max_raw(vars) * self.scale_pos
+    }
+}
+
+impl<V: View> View for TimesPos<V> {
+    fn try_set_min(self, min: i32, ctx: &mut Context) -> Option<i32> {
+        self.x.try_set_min(min.div_ceil(self.scale_pos), ctx)
+    }
+
+    fn try_set_max(self, max: i32, ctx: &mut Context) -> Option<i32> {
+        self.x.try_set_max(max.div_floor(self.scale_pos), ctx)
     }
 }

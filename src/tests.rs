@@ -89,6 +89,28 @@ fn plus_unfeasible() {
 }
 
 #[test]
+fn times_pos() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.times_pos(2), 4);
+
+    assert_eq!(m.solve().unwrap()[x], 2);
+}
+
+#[test]
+fn times_pos_unfeasible() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.times_pos(2), 3);
+
+    assert!(m.solve().is_none());
+}
+
+#[test]
 fn add() {
     let mut m = Model::default();
 
