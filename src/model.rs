@@ -39,6 +39,26 @@ impl Model {
         let _p = self.props.equals(x, y);
     }
 
+    /// Declare constraint `x <= y`.
+    pub fn less_than_or_equals(&mut self, x: impl View, y: impl View) {
+        let _p = self.props.less_than_or_equals(x, y);
+    }
+
+    /// Declare constraint `x < y`.
+    pub fn less_than(&mut self, x: impl View, y: impl View) {
+        let _p = self.props.less_than(x, y);
+    }
+
+    /// Declare constraint `x >= y`.
+    pub fn greater_than_or_equals(&mut self, x: impl View, y: impl View) {
+        let _p = self.props.greater_than_or_equals(x, y);
+    }
+
+    /// Declare constraint `x > y`.
+    pub fn greater_than(&mut self, x: impl View, y: impl View) {
+        let _p = self.props.greater_than(x, y);
+    }
+
     /// Find assignment that minimizes objective expression while satisfying all constraints.
     #[must_use]
     pub fn minimize(self, objective: impl View) -> Option<Solution> {
