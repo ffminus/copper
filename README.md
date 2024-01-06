@@ -5,6 +5,49 @@ A constraint programming solver.
 A solver is a declarative framework, where combinatorial problems are described in terms of decision variables and binding constraints. The algorithms used to find a feasible solution or minimize an expression are abstracted away from the user. Focus on problem definition, create relationships between variables, and Copper will take care of performing the actual search.
 
 
+## Usage
+
+Below is a formulation of the [Knapsack problem](https://en.wikipedia.org/wiki/Knapsack_problem).
+It maximizes the value of the items stored in a bag with a fixed maximum weight.
+
+```rust
+// Extension trait, used here to scale decision variables by a constant (`times` method)
+use copper::views::ViewExt;
+
+// Problem parameters
+let item_weights = [10, 60, 30, 40, 30, 20, 20, 2];
+let item_values = [1, 10, 15, 40, 60, 90, 100, 15];
+let weight_max = 102;
+
+// Model object, used to declare decision variables and constraints
+let mut m = copper::Model::default();
+
+// Binary decision variables: for each item, do I put it in the bag?
+let xs: Vec<_> = m.new_vars_binary(item_weights.len()).collect();
+
+// Sum of the weights of the selected items
+let weight = m.sum_iter(xs.iter().zip(item_weights).map(|(x, w)| x.times(w)));
+
+// Ensure the bag does not exceed its maximum weight
+m.less_than_or_equals(weight, weight_max);
+
+// Sum the value of the selected items
+let value = m.sum_iter(xs.iter().zip(item_values).map(|(x, v)| x.times(v)));
+
+// Find the selection of items that maximizes the bag's value
+let solution = m.maximize(value).unwrap();
+
+// Extract assignment for each decision variable: is this item in the optimal bag?
+let is_item_in_bag = solution.get_values_binary(&xs);
+
+assert_eq!(is_item_in_bag, vec![false, false, true, false, true, true, true, true]);
+assert_eq!(solution[weight], 102);
+assert_eq!(solution[value], 280);
+```
+
+You can find the step-by-step guide for a similar problem in the documentation for the [Model struct](https://docs.rs/copper/*/copper/struct.Model.html).
+
+
 ## Constraint programming or linear solvers?
 
 Most integer programming solvers, be they [open source](https://github.com/coin-or/Clp) or [commercial](https://www.gurobi.com), are restricted to linear constraints. This unlocks performant methods like the [simplex algorithm](https://en.wikipedia.org/wiki/Simplex_algorithm), which make them much faster than constraint programming solvers on linear problems.
