@@ -1,3 +1,4 @@
+mod eq;
 mod leq;
 
 use core::ops::{Index, IndexMut};
@@ -48,6 +49,11 @@ impl Propagators {
     /// Get list of propagators that should be scheduled when a bound of variable `v` changes.
     pub fn on_bound_change(&self, v: VarId) -> impl Iterator<Item = PropId> {
         self.dependencies[v].iter().copied()
+    }
+
+    /// Declare a new propagator to enforce `x == y`.
+    pub fn equals(&mut self, x: impl View, y: impl View) -> PropId {
+        self.push_new_prop(self::eq::Equals::new(x, y))
     }
 
     /// Declare a new propagator to enforce `x <= y`.

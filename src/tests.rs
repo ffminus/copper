@@ -42,3 +42,29 @@ fn maximize() {
 
     assert_eq!(m.maximize(x).unwrap()[x], 9);
 }
+
+#[test]
+fn equals() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+    let y = m.new_var(4, 8).unwrap();
+
+    m.equals(x, y);
+
+    let solution = m.minimize(x).unwrap();
+
+    assert_eq!(solution[x], 4);
+    assert_eq!(solution[y], 4);
+}
+
+#[test]
+fn equals_with_constant() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x, 4);
+
+    assert_eq!(m.solve().unwrap()[x], 4);
+}

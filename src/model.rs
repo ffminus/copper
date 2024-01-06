@@ -34,6 +34,11 @@ impl Model {
         self.vars.new_var_with_bounds(min, max)
     }
 
+    /// Declare two expressions to be equal.
+    pub fn equals(&mut self, x: impl View, y: impl View) {
+        let _p = self.props.equals(x, y);
+    }
+
     /// Find assignment that minimizes objective expression while satisfying all constraints.
     #[must_use]
     pub fn minimize(self, objective: impl View) -> Option<Solution> {
