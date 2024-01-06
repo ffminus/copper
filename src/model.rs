@@ -1,4 +1,6 @@
 use crate::props::Propagators;
+use crate::search::search;
+use crate::solution::Solution;
 use crate::vars::{VarId, Vars};
 
 /// Library entry point used to declare decision variables and constraints, and configure search.
@@ -29,5 +31,12 @@ impl Model {
     fn new_var_unchecked(&mut self, min: i32, max: i32) -> VarId {
         self.props.on_new_var();
         self.vars.new_var_with_bounds(min, max)
+    }
+
+    /// Enumerate all assignments that satisfy all constraints.
+    ///
+    /// The order in which assignments are yielded is not stable.
+    pub fn enumerate(self) -> impl Iterator<Item = Solution> {
+        search(self.vars, self.props)
     }
 }
