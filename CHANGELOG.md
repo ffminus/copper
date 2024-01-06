@@ -8,6 +8,8 @@ Emoji prefixes follow the [gitmoji](https://gitmoji.dev/) guide.
 
 ## [Unreleased]
 
+## [0.1.0] - 2024-01-06
+
 ### Added
 
 - ✨ Implement base propagation engine
@@ -18,4 +20,5 @@ Emoji prefixes follow the [gitmoji](https://gitmoji.dev/) guide.
 - 🔨 Declare common commands as [just](https://github.com/casey/just) recipes
 - 📄 License code under MIT
 
-[unreleased]: https://github.com/ffminus/copper
+[unreleased]: https://github.com/ffminus/copper/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ffminus/copper/releases/tag/v0.1.0
