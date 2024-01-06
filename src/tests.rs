@@ -89,6 +89,23 @@ fn plus_unfeasible() {
 }
 
 #[test]
+fn add() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+    let y = m.new_var(-7, 9).unwrap();
+    let p = m.add(x, y);
+
+    m.equals(p, 18);
+
+    let solution = m.solve().unwrap();
+
+    assert_eq!(solution[x], 9);
+    assert_eq!(solution[y], 9);
+    assert_eq!(solution[p], 18);
+}
+
+#[test]
 fn equals() {
     let mut m = Model::default();
 

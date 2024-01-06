@@ -1,3 +1,4 @@
+mod add;
 mod eq;
 mod leq;
 
@@ -49,6 +50,11 @@ impl Propagators {
     /// Get list of propagators that should be scheduled when a bound of variable `v` changes.
     pub fn on_bound_change(&self, v: VarId) -> impl Iterator<Item = PropId> {
         self.dependencies[v].iter().copied()
+    }
+
+    /// Declare a new propagator to enforce `x + y == s`.
+    pub fn add(&mut self, x: impl View, y: impl View, s: VarId) -> PropId {
+        self.push_new_prop(self::add::Add::new(x, y, s))
     }
 
     /// Declare a new propagator to enforce `x == y`.

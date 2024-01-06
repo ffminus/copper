@@ -34,6 +34,17 @@ impl Model {
         self.vars.new_var_with_bounds(min, max)
     }
 
+    /// Create an expression of two views added together.
+    pub fn add(&mut self, x: impl View, y: impl View) -> VarId {
+        let min = x.min_raw(&self.vars) + y.min_raw(&self.vars);
+        let max = x.max_raw(&self.vars) + y.max_raw(&self.vars);
+        let s = self.new_var_unchecked(min, max);
+
+        let _p = self.props.add(x, y, s);
+
+        s
+    }
+
     /// Declare two expressions to be equal.
     pub fn equals(&mut self, x: impl View, y: impl View) {
         let _p = self.props.equals(x, y);
