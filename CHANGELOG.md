@@ -12,6 +12,7 @@ Emoji prefixes follow the [gitmoji](https://gitmoji.dev/) guide.
 
 - ✨ Implement base propagation engine
 - ✨ Offer different modes: solve, enumerate, minimize (or maximize) with intermediate assignments
+- ✨ Declare derived expressions from base variables
 - 🚸 Make propagators more generic using views
 - 🔨 Harden [clippy](https://github.com/rust-lang/rust-clippy) configuration
 - 🔨 Declare common commands as [just](https://github.com/casey/just) recipes

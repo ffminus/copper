@@ -1,0 +1,51 @@
+use crate::vars::VarId;
+use crate::views::{Context, View};
+
+use super::{Propagate, Prune};
+
+/// Add a list of views together: `sum(x) == s`.
+#[derive(Clone, Debug)]
+pub struct Sum<V> {
+    xs: Vec<V>,
+    s: VarId,
+}
+
+impl<V> Sum<V> {
+    pub const fn new(xs: Vec<V>, s: VarId) -> Self {
+        Self { xs, s }
+    }
+}
+
+impl<V: View> Prune for Sum<V> {
+    fn prune(&mut self, ctx: &mut Context) -> Option<()> {
+        // Derive minimum and maximum values the sum of terms can reach
+        let min_of_terms: i32 = self.xs.iter().map(|x| x.min(ctx)).sum();
+        let max_of_terms: i32 = self.xs.iter().map(|x| x.max(ctx)).sum();
+
+        let _ = self.s.try_set_min(min_of_terms, ctx)?;
+        let _ = self.s.try_set_max(max_of_terms, ctx)?;
+
+        // Current bounds of the sum of all terms
+        let min = self.s.min(ctx);
+        let max = self.s.max(ctx);
+
+        for x in &self.xs {
+            let _ = x.try_set_min(min - (max_of_terms - x.max(ctx)), ctx)?;
+            let _ = x.try_set_max(max - (min_of_terms - x.min(ctx)), ctx)?;
+        }
+
+        Some(())
+    }
+}
+
+impl<V: View> Propagate for Sum<V> {
+    gen fn list_trigger_vars(&self) -> VarId {
+        for x in &self.xs {
+            if let Some(v) = x.get_underlying_var() {
+                yield v;
+            }
+        }
+
+        yield self.s;
+    }
+}

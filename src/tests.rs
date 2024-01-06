@@ -106,6 +106,21 @@ fn add() {
 }
 
 #[test]
+fn sum() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+    let y = m.new_var(-7, 9).unwrap();
+    let s = m.sum(&[x, y]);
+
+    let solution = m.maximize(s).unwrap();
+
+    assert_eq!(solution[x], 9);
+    assert_eq!(solution[y], 9);
+    assert_eq!(solution[s], 18);
+}
+
+#[test]
 fn equals() {
     let mut m = Model::default();
 

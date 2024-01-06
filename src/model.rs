@@ -45,6 +45,24 @@ impl Model {
         s
     }
 
+    /// Create an expression of the sum of a slice of views.
+    pub fn sum(&mut self, xs: &[impl View]) -> VarId {
+        self.sum_iter(xs.iter().copied())
+    }
+
+    /// Create an expression of the sum of an iterator of views.
+    pub fn sum_iter(&mut self, xs: impl IntoIterator<Item = impl View>) -> VarId {
+        let xs: Vec<_> = xs.into_iter().collect();
+
+        let min: i32 = xs.iter().map(|x| x.min_raw(&self.vars)).sum();
+        let max: i32 = xs.iter().map(|x| x.max_raw(&self.vars)).sum();
+        let s = self.new_var_unchecked(min, max);
+
+        let _p = self.props.sum(xs, s);
+
+        s
+    }
+
     /// Declare two expressions to be equal.
     pub fn equals(&mut self, x: impl View, y: impl View) {
         let _p = self.props.equals(x, y);

@@ -1,6 +1,7 @@
 mod add;
 mod eq;
 mod leq;
+mod sum;
 
 use core::ops::{Index, IndexMut};
 
@@ -55,6 +56,11 @@ impl Propagators {
     /// Declare a new propagator to enforce `x + y == s`.
     pub fn add(&mut self, x: impl View, y: impl View, s: VarId) -> PropId {
         self.push_new_prop(self::add::Add::new(x, y, s))
+    }
+
+    /// Declare a new propagator to enforce `sum(xs) == s`.
+    pub fn sum(&mut self, xs: Vec<impl View>, s: VarId) -> PropId {
+        self.push_new_prop(self::sum::Sum::new(xs, s))
     }
 
     /// Declare a new propagator to enforce `x == y`.
