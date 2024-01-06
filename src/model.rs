@@ -33,6 +33,12 @@ impl Model {
         self.vars.new_var_with_bounds(min, max)
     }
 
+    /// Search for assignment that satisfies all constraints within bounds of decision variables.
+    #[must_use]
+    pub fn solve(self) -> Option<Solution> {
+        self.enumerate().next()
+    }
+
     /// Enumerate all assignments that satisfy all constraints.
     ///
     /// The order in which assignments are yielded is not stable.
