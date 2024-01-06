@@ -89,6 +89,72 @@ fn plus_unfeasible() {
 }
 
 #[test]
+fn times_with_neg_scale() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.times(-2), 4);
+
+    assert_eq!(m.solve().unwrap()[x], -2);
+}
+
+#[test]
+fn times_with_neg_scale_unfeasible() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.times(-2), 3);
+
+    assert!(m.solve().is_none());
+}
+
+#[test]
+fn times_with_zero_scale() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.times(0), 0);
+
+    assert_eq!(m.maximize(x).unwrap()[x], 9);
+}
+
+#[test]
+fn times_with_zero_scale_unfeasible() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.times(0), 4);
+
+    assert!(m.solve().is_none());
+}
+
+#[test]
+fn times_with_pos_scale() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.times(2), 4);
+
+    assert_eq!(m.solve().unwrap()[x], 2);
+}
+
+#[test]
+fn times_with_pos_scale_unfeasible() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.times(2), 3);
+
+    assert!(m.solve().is_none());
+}
+
+#[test]
 fn times_pos() {
     let mut m = Model::default();
 
@@ -106,6 +172,28 @@ fn times_pos_unfeasible() {
     let x = m.new_var(-7, 9).unwrap();
 
     m.equals(x.times_pos(2), 3);
+
+    assert!(m.solve().is_none());
+}
+
+#[test]
+fn times_neg() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.times_neg(-2), 4);
+
+    assert_eq!(m.solve().unwrap()[x], -2);
+}
+
+#[test]
+fn times_neg_unfeasible() {
+    let mut m = Model::default();
+
+    let x = m.new_var(-7, 9).unwrap();
+
+    m.equals(x.times_neg(-2), 3);
 
     assert!(m.solve().is_none());
 }

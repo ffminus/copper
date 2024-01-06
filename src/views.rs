@@ -37,12 +37,22 @@ pub trait ViewExt: View {
     /// Add a constant offset to the underlying view.
     fn plus(self, offset: i32) -> Plus<Self>;
 
+    /// Scale the underlying view by a constant factor.
+    fn times(self, scale: i32) -> Times<Self>;
+
     /// Scale the underlying view by a strictly positive constant factor.
     ///
     /// # Panics
     ///
     /// This function will panic if the provided scale is not strictly positive.
     fn times_pos(self, scale_pos: i32) -> TimesPos<Self>;
+
+    /// Scale the underlying view by a strictly negative constant factor.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if the provided scale is not strictly negative.
+    fn times_neg(self, scale_neg: i32) -> TimesNeg<Self>;
 }
 
 impl<V: View> ViewExt for V {
@@ -54,8 +64,16 @@ impl<V: View> ViewExt for V {
         Plus { x: self, offset }
     }
 
+    fn times(self, scale: i32) -> Times<Self> {
+        Times::new(self, scale)
+    }
+
     fn times_pos(self, scale_pos: i32) -> TimesPos<Self> {
         TimesPos::new(self, scale_pos)
+    }
+
+    fn times_neg(self, scale_neg: i32) -> TimesNeg<Self> {
+        TimesPos::new(self.opposite(), -scale_neg)
     }
 }
 
@@ -241,6 +259,75 @@ impl<V: View> View for Plus<V> {
     }
 }
 
+/// Scale the underlying view by a constant factor.
+#[derive(Clone, Copy, Debug)]
+pub enum Times<V: View> {
+    /// Provided factor was strictly negative.
+    Neg(TimesNeg<V>),
+
+    /// Provided factor was exactly zero.
+    Zero,
+
+    /// Provided factor was strictly positive.
+    Pos(TimesPos<V>),
+}
+
+impl<V: View> Times<V> {
+    fn new(x: V, scale: i32) -> Self {
+        use core::cmp::Ordering;
+
+        match scale.cmp(&0) {
+            Ordering::Less => Self::Neg(TimesPos::new(x.opposite(), -scale)),
+            Ordering::Equal => Self::Zero,
+            Ordering::Greater => Self::Pos(TimesPos::new(x, scale)),
+        }
+    }
+}
+
+impl<V: View> ViewRaw for Times<V> {
+    fn get_underlying_var_raw(self) -> Option<VarId> {
+        match self {
+            Self::Neg(neg) => neg.get_underlying_var_raw(),
+            Self::Zero => None,
+            Self::Pos(pos) => pos.get_underlying_var_raw(),
+        }
+    }
+
+    fn min_raw(self, vars: &Vars) -> i32 {
+        match self {
+            Self::Neg(neg) => neg.min_raw(vars),
+            Self::Zero => 0.min_raw(vars),
+            Self::Pos(pos) => pos.min_raw(vars),
+        }
+    }
+
+    fn max_raw(self, vars: &Vars) -> i32 {
+        match self {
+            Self::Neg(neg) => neg.max_raw(vars),
+            Self::Zero => 0.max_raw(vars),
+            Self::Pos(pos) => pos.max_raw(vars),
+        }
+    }
+}
+
+impl<V: View> View for Times<V> {
+    fn try_set_min(self, min: i32, ctx: &mut Context) -> Option<i32> {
+        match self {
+            Self::Neg(neg) => neg.try_set_min(min, ctx),
+            Self::Zero => 0.try_set_min(min, ctx),
+            Self::Pos(pos) => pos.try_set_min(min, ctx),
+        }
+    }
+
+    fn try_set_max(self, max: i32, ctx: &mut Context) -> Option<i32> {
+        match self {
+            Self::Neg(neg) => neg.try_set_max(max, ctx),
+            Self::Zero => 0.try_set_max(max, ctx),
+            Self::Pos(pos) => pos.try_set_max(max, ctx),
+        }
+    }
+}
+
 /// Scale the underlying view by a strictly positive constant factor.
 #[derive(Clone, Copy, Debug)]
 pub struct TimesPos<V> {
@@ -278,3 +365,6 @@ impl<V: View> View for TimesPos<V> {
         self.x.try_set_max(max.div_floor(self.scale_pos), ctx)
     }
 }
+
+/// Scale the underlying view by a strictly negative constant factor.
+pub type TimesNeg<V> = TimesPos<Opposite<V>>;
