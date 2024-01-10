@@ -3,12 +3,15 @@ pub mod mode;
 mod agenda;
 mod branch;
 
+use core::mem::replace;
+
 use crate::props::Propagators;
 use crate::solution::Solution;
 use crate::vars::Vars;
 use crate::views::Context;
 
 use self::agenda::Agenda;
+use self::branch::{split_on_unassigned, SplitOnUnassigned};
 use self::mode::Mode;
 
 /// Data required to perform search, copied on branch and discarded on failure.
@@ -19,53 +22,87 @@ pub struct Space {
 }
 
 /// Perform search, iterating over assignments that satisfy all constraints.
-pub gen fn search(vars: Vars, props: Propagators, mode: impl Mode) -> Solution {
+pub fn search<M: Mode>(vars: Vars, props: Propagators, mode: M) -> Search<M> {
     // Schedule all propagators during initial propagation step
     let agenda = Agenda::with_props(props.get_prop_ids_iter());
 
     // Propagate constraints until search is stalled or a solution is found
-    if let Some((is_stalled, space)) = propagate(Space { vars, props }, agenda) {
-        if is_stalled {
-            // Explore space by alternating branching and propagation
-            for solution in search_with_branching(space, mode) {
-                yield solution;
-            }
-        } else {
-            // Extract solution assignment for all decision variables
-            yield space.vars.into_solution();
+    let Some((is_stalled, space)) = propagate(Space { vars, props }, agenda) else {
+        return Search::Done(None);
+    };
+
+    // Explore space by alternating branching and propagation
+    if is_stalled {
+        Search::Stalled(Engine::new(space, mode))
+    } else {
+        Search::Done(Some(space))
+    }
+}
+
+/// Manual state machine until `gen` keyword is available (edition 2024).
+pub enum Search<M> {
+    Stalled(Engine<M>),
+    Done(Option<Space>),
+}
+
+impl<M: Mode> Iterator for Search<M> {
+    type Item = Solution;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::Stalled(engine) => engine.next(),
+            Self::Done(space_opt) => space_opt.take().map(|space| space.vars.into_solution()),
         }
     }
 }
 
-/// Explore search tree, leveraging propagators to prune domains.
-gen fn search_with_branching(space: Space, mut mode: impl Mode) -> Solution {
-    // Branching strategy when search is stalled
-    let get_branch_iter = branch::split_on_unassigned;
+/// Manual state machine until `gen` keyword is available (edition 2024).
+pub struct Engine<M> {
+    branch_iter: SplitOnUnassigned,
+    stack: Vec<SplitOnUnassigned>,
+    mode: M,
+}
 
-    // Preserve a trail of copies to allow backtracking on failed spaces
-    let mut stack = vec![get_branch_iter(space)];
+impl<M> Engine<M> {
+    fn new(space: Space, mode: M) -> Self {
+        // Preserve a trail of copies to allow backtracking on failed spaces
+        Self {
+            branch_iter: split_on_unassigned(space),
+            stack: Vec::new(),
+            mode,
+        }
+    }
+}
 
-    while let Some(mut branch_iter) = stack.pop() {
-        while let Some((mut space, p)) = branch_iter.next() {
-            // Schedule propagator triggered by the branch
-            let agenda = Agenda::with_props(mode.on_branch(&mut space).chain(core::iter::once(p)));
+impl<M: Mode> Iterator for Engine<M> {
+    type Item = Solution;
 
-            // Failed spaces are discarded, fixed points get explored further (depth-first search)
-            if let Some((is_stalled, space)) = propagate(space, agenda) {
-                if is_stalled {
-                    // Save where search will resume if sub-space gets failed
-                    stack.push(branch_iter);
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            while let Some((mut space, p)) = self.branch_iter.next() {
+                // Schedule propagator triggered by the branch
+                let agenda =
+                    Agenda::with_props(self.mode.on_branch(&mut space).chain(core::iter::once(p)));
 
-                    // Branch on new space, to explore it further
-                    branch_iter = get_branch_iter(space);
-                } else {
-                    // Mode object may update its internal state when new solutions are found
-                    mode.on_solution(&space.vars);
+                // Failed spaces are discarded, fixed points get explored further (depth-first search)
+                if let Some((is_stalled, space)) = propagate(space, agenda) {
+                    if is_stalled {
+                        // Branch on new space, to explore it further
+                        let parent = replace(&mut self.branch_iter, split_on_unassigned(space));
 
-                    // Extract solution assignment for all decision variables
-                    yield space.vars.into_solution();
+                        // Save where search will resume if sub-space gets failed
+                        self.stack.push(parent);
+                    } else {
+                        // Mode object may update its internal state when new solutions are found
+                        self.mode.on_solution(&space.vars);
+
+                        // Extract solution assignment for all decision variables
+                        return Some(space.vars.into_solution());
+                    }
                 }
             }
+
+            self.branch_iter = self.stack.pop()?;
         }
     }
 }

@@ -19,7 +19,7 @@ pub trait Prune: core::fmt::Debug + DynClone {
 /// Isolate methods that prevent propagator from being used as a trait-object.
 pub trait Propagate: Prune + 'static {
     /// List variables that schedule the propagator when their domain changes.
-    gen fn list_trigger_vars(&self) -> VarId;
+    fn list_trigger_vars(&self) -> impl Iterator<Item = VarId>;
 }
 
 // ? State of propagators is cloned during search, but trait objects cannot be `Clone` by default
@@ -49,7 +49,7 @@ impl Propagators {
     }
 
     /// Get list of propagators that should be scheduled when a bound of variable `v` changes.
-    pub fn on_bound_change(&self, v: VarId) -> impl Iterator<Item = PropId> {
+    pub fn on_bound_change(&self, v: VarId) -> impl Iterator<Item = PropId> + '_ {
         self.dependencies[v].iter().copied()
     }
 

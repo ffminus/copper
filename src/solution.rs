@@ -20,8 +20,9 @@ impl Solution {
     }
 
     /// Get assignments for the provided decision variables.
-    pub fn get_values_iter<I: IntoIterator>(&self, vs: I) -> impl Iterator<Item = i32>
+    pub fn get_values_iter<'a, I>(&'a self, vs: I) -> impl Iterator<Item = i32> + 'a
     where
+        I: IntoIterator + 'a,
         I::Item: Borrow<VarId>,
     {
         vs.into_iter().map(|v| self[*v.borrow()])
@@ -46,8 +47,9 @@ impl Solution {
     }
 
     /// Get binary assignments for the provided decision variables.
-    pub fn get_values_binary_iter<I: IntoIterator>(&self, vs: I) -> impl Iterator<Item = bool>
+    pub fn get_values_binary_iter<'a, I>(&'a self, vs: I) -> impl Iterator<Item = bool> + 'a
     where
+        I: IntoIterator + 'a,
         I::Item: Borrow<VarIdBinary>,
     {
         vs.into_iter().map(|v| self.get_value_binary(v))

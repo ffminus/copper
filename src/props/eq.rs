@@ -29,13 +29,10 @@ impl<U: View, V: View> Prune for Equals<U, V> {
 }
 
 impl<U: View, V: View> Propagate for Equals<U, V> {
-    gen fn list_trigger_vars(&self) -> VarId {
-        if let Some(v) = self.x.get_underlying_var() {
-            yield v;
-        }
-
-        if let Some(v) = self.y.get_underlying_var() {
-            yield v;
-        }
+    fn list_trigger_vars(&self) -> impl Iterator<Item = VarId> {
+        self.x
+            .get_underlying_var()
+            .into_iter()
+            .chain(self.y.get_underlying_var())
     }
 }

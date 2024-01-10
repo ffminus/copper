@@ -6,7 +6,9 @@ use crate::views::View;
 /// Control search behavior when a solution is found.
 pub trait Mode: core::fmt::Debug {
     /// List propagators to be scheduled on after branch.
-    gen fn on_branch(&self, _: &mut Space) -> PropId {}
+    fn on_branch(&self, _: &mut Space) -> impl Iterator<Item = PropId> {
+        core::iter::empty()
+    }
 
     /// Update internal state when new solution is found.
     fn on_solution(&mut self, _vars: &Vars) {}
@@ -35,11 +37,11 @@ impl<V: View> Minimize<V> {
 }
 
 impl<V: View> Mode for Minimize<V> {
-    gen fn on_branch(&self, space: &mut Space) -> PropId {
+    fn on_branch(&self, space: &mut Space) -> impl Iterator<Item = PropId> {
         // Prune assignments that cannot lower objective expression
-        if let Some(minimum) = self.minimum_opt {
-            yield space.props.less_than(self.objective, minimum);
-        };
+        self.minimum_opt
+            .map(|minimum| space.props.less_than(self.objective, minimum))
+            .into_iter()
     }
 
     fn on_solution(&mut self, vars: &Vars) {

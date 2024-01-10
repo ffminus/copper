@@ -33,15 +33,9 @@ impl<U: View, V: View> Prune for Add<U, V> {
 }
 
 impl<U: View, V: View> Propagate for Add<U, V> {
-    gen fn list_trigger_vars(&self) -> VarId {
-        if let Some(v) = self.x.get_underlying_var() {
-            yield v;
-        }
-
-        if let Some(v) = self.y.get_underlying_var() {
-            yield v;
-        }
-
-        yield self.s;
+    fn list_trigger_vars(&self) -> impl Iterator<Item = VarId> {
+        core::iter::once(self.s)
+            .chain(self.x.get_underlying_var())
+            .chain(self.y.get_underlying_var())
     }
 }

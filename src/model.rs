@@ -160,7 +160,7 @@ impl Model {
         n: usize,
         min: i32,
         max: i32,
-    ) -> Option<impl Iterator<Item = VarId>> {
+    ) -> Option<impl Iterator<Item = VarId> + '_> {
         if min < max {
             Some(core::iter::repeat_with(move || self.new_var_unchecked(min, max)).take(n))
         } else {
@@ -174,7 +174,7 @@ impl Model {
     }
 
     /// Create new binary decision variables.
-    pub fn new_vars_binary(&mut self, n: usize) -> impl Iterator<Item = VarIdBinary> {
+    pub fn new_vars_binary(&mut self, n: usize) -> impl Iterator<Item = VarIdBinary> + '_ {
         core::iter::repeat_with(|| self.new_var_binary()).take(n)
     }
 

@@ -39,13 +39,10 @@ impl<V: View> Prune for Sum<V> {
 }
 
 impl<V: View> Propagate for Sum<V> {
-    gen fn list_trigger_vars(&self) -> VarId {
-        for x in &self.xs {
-            if let Some(v) = x.get_underlying_var() {
-                yield v;
-            }
-        }
-
-        yield self.s;
+    fn list_trigger_vars(&self) -> impl Iterator<Item = VarId> {
+        self.xs
+            .iter()
+            .filter_map(|x| x.get_underlying_var())
+            .chain(core::iter::once(self.s))
     }
 }

@@ -1,5 +1,5 @@
 // Enable unstable compiler features
-#![feature(gen_blocks, int_roundings)]
+#![feature(int_roundings)]
 // Use `README.md` as documentation home page, to reduce duplication
 #![doc = include_str!("../README.md")]
 
