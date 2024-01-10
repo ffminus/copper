@@ -10,8 +10,8 @@ description  = "A constraint programming solver."
 readme       = "README.md"
 repository   = "https://github.com/ffminus/copper"
 license      = "MIT"
-keywords     = ["solver", "constraint programming"]
-categories   = ["constraint programming"]
+keywords     = ["solver", "constraint-solver"]
+categories   = ["constraint-solver"]
 
 
 [dependencies]
